@@ -32,7 +32,6 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   
-  // تصدير النماذج والمصادقة للشبكة العامة بشكل آمن
   window.auth = auth;
   window.GoogleAuthProvider = GoogleAuthProvider;
   window.signInWithPopup = signInWithPopup;
@@ -41,7 +40,6 @@
   window.signOut = signOut;
   window.onAuthStateChanged = onAuthStateChanged;
 
-  // تعريف دالة تسجيل الدخول بجوجل مباشرة هنا لضمان عملها
   window.loginWithGoogle = async function() {
     try {
       const provider = new GoogleAuthProvider();
@@ -405,7 +403,6 @@ function showRegister(){showView("authView");$("loginPanel").classList.add("hidd
 function showForgot(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.remove("hidden");}
 function backToEmail(){$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");}
 
-// طلب رمز التحقق وعرضه لإرساله عبر Eisen Mail
 const reqForm = $("requestCodeForm");
 if (reqForm) {
   reqForm.addEventListener("submit", async e => {
@@ -427,7 +424,6 @@ if (reqForm) {
   });
 }
 
-// إتمام التحقق وإنشاء الحساب في Firebase
 const verifyForm = $("verifyForm");
 if (verifyForm) {
   verifyForm.addEventListener("submit", async e => {
@@ -449,7 +445,6 @@ if (verifyForm) {
   });
 }
 
-// تسجيل الدخول العادي
 const loginForm = $("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async e => {
@@ -465,7 +460,6 @@ if (loginForm) {
   });
 }
 
-// طلب الاستعادة
 const forgotForm = $("forgotForm");
 if (forgotForm) {
   forgotForm.addEventListener("submit", async e => {
@@ -479,7 +473,6 @@ function logout(){
   window.signOut(window.auth).then(() => { showLogin(); });
 }
 
-// دوال التنقل وإدارة المشاريع
 function showHome(){ showView("homeView"); renderRecent(); }
 function showAccount(){ 
   $("accountInfo").textContent = "البريد المستخدم: " + emailNow(); 
@@ -498,8 +491,6 @@ function renderRecent(){const list=myProjects().slice(-3).reverse();$("recentPro
 
 const websiteForm = $("websiteForm");
 if (websiteForm) {
-  websiteForm id = $("websiteForm");
-if (websiteForm) {
   websiteForm.addEventListener("submit", e => {
     e.preventDefault();
     const name = $("websiteName").value.trim();
@@ -515,7 +506,7 @@ if (websiteForm) {
 
 const appForm = $("appForm");
 if (appForm) {
-  appForm.addEventListener("submit", e => {
+  appForm.appForm = appForm.addEventListener("submit", e => {
     e.preventDefault();
     saveProject({name: $("appName").value.trim(), idea: $("appIdea").value.trim(), type: "تطبيق"});
     window.open("https://appsgeyser.com/create-app/","_blank","noopener");
