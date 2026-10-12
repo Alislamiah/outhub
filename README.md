@@ -396,63 +396,75 @@ async function loginWithGoogle() {
   }
 }
 
-// طلب رمز التحقق وعرضه لإرساله عبر Eisen Mail
-$("requestCodeForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  pendingEmail = $("registerEmail").value.trim().toLowerCase();
-  if(!pendingEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pendingEmail)){
-    message("registerMessage","أدخل بريدًا صحيحًا.","error");
-    return;
-  }
-  generatedOtp = Math.floor(100000 + Math.random()*900000).toString();
-  
-  const payload = {to: pendingEmail, code: generatedOtp, at: Date.now()};
-  localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
-  try { window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank"); } catch(e){}
+// طلب رمز التحقق الحقيقي والفريد عبر Eisen Mail
+const reqForm = $("requestCodeForm");
+if (reqForm) {
+  reqForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    pendingEmail = $("registerEmail").value.trim().toLowerCase();
+    if(!pendingEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pendingEmail)){
+      message("registerMessage","أدخل بريدًا صحيحًا.","error");
+      return;
+    }
+    generatedOtp = Math.floor(100000 + Math.random()*900000).toString();
+    
+    const payload = {to: pendingEmail, code: generatedOtp, at: Date.now()};
+    localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
+    try { window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank"); } catch(e){}
 
-  $("emailStep").classList.add("hidden");
-  $("verifyStep").classList.remove("hidden");
-  message("registerMessage","تم توليد وإرسال الرمز إلى Eisen Mail. الرمز للتجربة: "+generatedOtp,"success");
-});
+    $("emailStep").classList.add("hidden");
+    $("verifyStep").classList.remove("hidden");
+    message("registerMessage","تم توليد وإرسال الرمز إلى Eisen Mail. الرمز للتجربة: "+generatedOtp,"success");
+  });
+}
 
-// إتمام التحقق وإنشاء الحساب
-$("verifyForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const code = $("verifyCode").value.trim();
-  const password = $("registerPassword").value;
-  
-  if(code !== generatedOtp){
-    message("registerMessage","رمز التحقق غير صحيح.","error");
-    return;
-  }
-  
-  try {
-    await window.createUserWithEmailAndPassword(window.auth, pendingEmail, password);
-    showHome();
-  } catch(error) {
-    message("registerMessage","خطأ في إنشاء الحساب: " + error.message, "error");
-  }
-});
+// إتمام التحقق وإنشاء الحساب في Firebase
+const verifyForm = $("verifyForm");
+if (verifyForm) {
+  verifyForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const code = $("verifyCode").value.trim();
+    const password = $("registerPassword").value;
+    
+    if(code !== generatedOtp){
+      message("registerMessage","رمز التحقق غير صحيح.","error");
+      return;
+    }
+    
+    try {
+      await window.createUserWithEmailAndPassword(window.auth, pendingEmail, password);
+      showHome();
+    } catch(error) {
+      message("registerMessage","خطأ في إنشاء الحساب: " + error.message, "error");
+    }
+  });
+}
 
 // تسجيل الدخول العادي
-$("loginForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const email = $("loginEmail").value.trim();
-  const pass = $("loginPassword").value;
-  try {
-    await window.signInWithEmailAndPassword(window.auth, email, pass);
-    showHome();
-  } catch(error) {
-    message("loginMessage","البريد أو كلمة المرور غير صحيحة.", "error");
-  }
-});
+const loginForm = $("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const email = $("loginEmail").value.trim();
+    const pass = $("loginPassword").value;
+    try {
+      await window.signInWithEmailAndPassword(window.auth, email, pass);
+      showHome();
+    } catch(error) {
+      message("loginMessage","البريد أو كلمة المرور غير صحيحة.", "error");
+    }
+  });
+}
 
 // طلب الاستعادة
-$("forgotForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const email = $("forgotEmail").value.trim();
-  message("forgotMessage","إذا كان الحساب موجودًا، فستصل تعليمات الاستعادة إلى بريدك في Eisen Mail.", "success");
-});
+const forgotForm = $("forgotForm");
+if (forgotForm) {
+  forgotForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const email = $("forgotEmail").value.trim();
+    message("forgotMessage","إذا كان الحساب موجودًا، فستصل تعليمات الاستعادة إلى بريدك في Eisen Mail.", "success");
+  });
+}
 
 function logout(){
   window.signOut(window.auth).then(() => { showLogin(); });
@@ -475,24 +487,30 @@ function markup(p){return `<div class="project-item"><strong>${escapeHTML(p.name
 function projectList(){const list=myProjects().reverse();return list.length?list.map(markup).join(""):'<div class="empty">لا توجد مشاريع محفوظة.</div>';}
 function renderRecent(){const list=myProjects().slice(-3).reverse();$("recentProjects").innerHTML=list.length?list.map(markup).join(""):'<div class="card empty">لم تحفظ أي مشروع بعد.</div>';}
 
-$("websiteForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const name = $("websiteName").value.trim();
-  const idea = $("websiteIdea").value.trim();
-  const repo = $("repoName").value.trim();
-  const visibility = $("visibility").value;
-  if(!/^[A-Za-z0-9._-]+$/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
-  saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
-  window.open("https://github.com/new?name=" + encodeURIComponent(repo), "_blank", "noopener");
-  message("websiteMessage","حُفظ المشروع محليًا وتم توجيهك إلى GitHub.","success");
-});
+const websiteForm = $("websiteForm");
+if (websiteForm) {
+  websiteForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("websiteName").value.trim();
+    const idea = $("websiteIdea").value.trim();
+    const repo = $("repoName").value.trim();
+    const visibility = $("visibility").value;
+    if(!/^[A-Za-9]+$/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
+    saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
+    window.open("https://github.com/new?name=" + encodeURIComponent(repo), "_blank", "noopener");
+    message("websiteMessage","حُفظ المشروع محليًا وتم توجيهك إلى GitHub.","success");
+  });
+}
 
-$("appForm").addEventLi$("appForm").addEventListener("submit", e => {
-  e.preventDefault();
-  saveProject({name: $("appName").value.trim(), idea: $("appIdea").value.trim(), type: "تطبيق"});
-  window.open("https://appsgeyser.com/create-app/","_blank","noopener");
-  message("appMessage","حُفظت معلومات التطبيق وتم فتح أداة الإنشاء.","success");
-});
+const appForm = $("appForm");
+if (appForm) {
+  appForm.addEventListener("submit", e => {
+    e.preventDefault();
+    saveProject({name: $("appName").value.trim(), idea: $("appIdea").value.trim(), type: "تطبيق"});
+    window.open("https://appsgeyser.com/create-app/","_blank","noopener");
+    message("appMessage","حُفظت معلومات التطبيق وتم فتح أداة الإنشاء.","success");
+  });
+}
 </script>
 </body>
 </html>
