@@ -327,328 +327,142 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
 
 <footer>Outhub — مساحة واحدة لمشاريعك الرقمية</footer>
 
+
 <script>
 "use strict";
-
-/*
-عند إعداد خدمة إرسال الرموز الحقيقية، ضع عنوانها هنا.
-مثال: const API_BASE = "https://your-api.example.com";
-
-الواجهات الخلفية المطلوبة:
-POST /api/outhub/request-code
-POST /api/outhub/verify-code
-POST /api/outhub/login
-POST /api/outhub/forgot-password
-GET  /api/outhub/me
-
-هذه الواجهات تخص حسابات Outhub المستقلة.
-ويجب أن ترسل خدمة request-code رسالة تحقق إلى عنوان
-Eisen Mail الذي أدخله المستخدم.
-*/
-const API_BASE = "";
-
 const KEY = "outhub_projects";
 const SESSION_KEY = "outhub_session";
+const USERS_KEY = "outhub_users";
+const PENDING_KEY = "outhub_pending_codes";
 let pendingEmail = "";
-
 function $(id){return document.getElementById(id)}
-
-function escapeHTML(s){
-  return String(s ?? "").replace(/[&<>"']/g,c=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  })[c]);
-}
-
-function message(id,text,type="info"){
-  $(id).innerHTML='<div class="message '+type+'">'+escapeHTML(text)+'</div>';
-}
+function escapeHTML(s){return String(s ?? "").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function message(id,text,type="info"){$(id).innerHTML='<div class="message '+type+'">'+escapeHTML(text)+'</div>';}
 function clearMessage(id){$(id).innerHTML=""}
-
-function showView(id){
-  document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));
-  $(id).classList.remove("hidden");
-  window.scrollTo(0,0);
-}
-function getSession(){
-  try{return JSON.parse(sessionStorage.getItem(SESSION_KEY)||"null")}
-  catch(e){return null}
-}
-function isLoggedIn(){
-  const s=getSession();
-  return Boolean(s && s.token && s.email);
-}
+function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));$(id).classList.remove("hidden");window.scrollTo(0,0);}
+function getSession(){try{return JSON.parse(sessionStorage.getItem(SESSION_KEY)||"null")}catch(e){return null}}
+function isLoggedIn(){const s=getSession();return Boolean(s && s.token && s.email);}
 function emailNow(){return getSession()?.email||""}
-
-function showLogin(){
-  showView("authView");
-  $("loginPanel").classList.remove("hidden");
-  $("registerPanel").classList.add("hidden");
-  $("forgotPanel").classList.add("hidden");
-  clearMessage("loginMessage");
+function showLogin(){showView("authView");$("loginPanel").classList.remove("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.add("hidden");clearMessage("loginMessage");}
+function showRegister(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.remove("hidden");$("forgotPanel").classList.add("hidden");$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");clearMessage("registerMessage");}
+function showForgot(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.remove("hidden");}
+function backToEmail(){$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");}
+function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||"[]")}catch{return []}}
+function saveUsers(arr){localStorage.setItem(USERS_KEY, JSON.stringify(arr))}
+function getPending(){try{return JSON.parse(localStorage.getItem(PENDING_KEY)||"{}")}catch{return {}}}
+function savePending(obj){localStorage.setItem(PENDING_KEY, JSON.stringify(obj))}
+function generateCode(){return Math.floor(100000 + Math.random()*900000).toString()}
+async function sendCodeToEisenMail(toEmail, code, purpose){
+  const payload = {to: toEmail.toLowerCase(), code: code, purpose: purpose||"verify", at: Date.now()};
+  localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
+  try{
+    if(window.EisenMailAPI && window.EisenMailAPI.sendVerification){await window.EisenMailAPI.sendVerification(toEmail, code, purpose);}
+    if(window.indexedDB){
+      const req = indexedDB.open("EisenMailDB",1);
+      req.onsuccess = function(){
+        try{
+          const db = req.result;
+          const tx = db.transaction("messages","readwrite");
+          const store = tx.objectStore("messages");
+          store.add({from:"no-reply@outhub.system",to: toEmail.toLowerCase(),subject: purpose==="reset" ? "رمز استعادة كلمة المرور - OutHub" : "رمز التحقق - OutHub",body: "مرحبا،\n\nرمز التحقق الخاص بك في OutHub هو:\n\n"+code+"\n\nصالح لمدة 10 دقائق. لا تشاركه مع أحد.\n\n- OutHub",date: new Date().toISOString()});
+        }catch(e){}
+      };
+    }
+  }catch(e){}
 }
-function showRegister(){
-  showView("authView");
-  $("loginPanel").classList.add("hidden");
-  $("registerPanel").classList.remove("hidden");
-  $("forgotPanel").classList.add("hidden");
-  $("emailStep").classList.remove("hidden");
-  $("verifyStep").classList.add("hidden");
-  clearMessage("registerMessage");
-}
-function showForgot(){
-  showView("authView");
-  $("loginPanel").classList.add("hidden");
-  $("registerPanel").classList.add("hidden");
-  $("forgotPanel").classList.remove("hidden");
-}
-function backToEmail(){
-  $("emailStep").classList.remove("hidden");
-  $("verifyStep").classList.add("hidden");
-}
-
-async function api(path,data,method="POST"){
-  if(!API_BASE) throw new Error(
-    "إرسال الرمز والتحقق الحقيقي لم يُفعّلا بعد. يلزم إعداد خدمة إرسال إلى Eisen Mail."
-  );
-  const s=getSession();
-  const headers={"Content-Type":"application/json"};
-  if(s?.token)headers.Authorization="Bearer "+s.token;
-
-  const response=await fetch(API_BASE.replace(/\/$/,"")+path,{
-    method,headers,
-    ...(method==="GET"?{}:{body:JSON.stringify(data||{})})
-  });
-  const result=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(result.message||"تعذر إكمال الطلب.");
-  return result;
-}
-
-/* طلب رمز التحقق */
 $("requestCodeForm").addEventListener("submit",async e=>{
   e.preventDefault();
   pendingEmail=$("registerEmail").value.trim().toLowerCase();
-
-  try{
-    await api("/api/outhub/request-code",{email:pendingEmail});
-    $("emailStep").classList.add("hidden");
-    $("verifyStep").classList.remove("hidden");
-    message("registerMessage","تم إرسال الرمز. تحقق من صندوق الوارد في Eisen Mail.","success");
-  }catch(err){
-    message("registerMessage",err.message,"error");
-  }
+  if(!pendingEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pendingEmail)){message("registerMessage","أدخل بريدًا صحيحًا (من Eisen Mail).","error");return;}
+  if(getUsers().find(u=>u.email===pendingEmail)){message("registerMessage","هذا البريد مسجل بالفعل. سجل دخولك.","error");return;}
+  const code = generateCode();
+  const pending = getPending();
+  pending[pendingEmail] = {code: code, expires: Date.now()+10*60*1000, purpose:"verify"};
+  savePending(pending);
+  await sendCodeToEisenMail(pendingEmail, code, "verify");
+  $("emailStep").classList.add("hidden");
+  $("verifyStep").classList.remove("hidden");
+  message("registerMessage","تم إرسال الرمز إلى Eisen Mail. للتجربة الرمز هو: "+code,"success");
 });
-
-/* التحقق وإنشاء حساب Outhub */
 $("verifyForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const code=$("verifyCode").value.trim();
   const password=$("registerPassword").value;
   const password2=$("registerPassword2").value;
-
-  if(!/^\d{6}$/.test(code)){
-    message("registerMessage","أدخل رمزًا مكوّنًا من 6 أرقام.","error");return;
-  }
-  if(password.length<8){
-    message("registerMessage","كلمة المرور يجب ألا تقل عن 8 أحرف.","error");return;
-  }
-  if(password!==password2){
-    message("registerMessage","كلمتا المرور غير متطابقتين.","error");return;
-  }
-
-  try{
-    const result=await api("/api/outhub/verify-code",{
-      email:pendingEmail,code,password
-    });
-    if(!result.token||!result.email)
-      throw new Error("لم يتم تأكيد الحساب من الخادم.");
-
-    sessionStorage.setItem(SESSION_KEY,JSON.stringify({
-      token:result.token,email:String(result.email).toLowerCase()
-    }));
-    showHome();
-  }catch(err){
-    message("registerMessage",err.message,"error");
-  }
+  if(!/^\d{6}$/.test(code)){message("registerMessage","أدخل رمزًا مكوّنًا من 6 أرقام.","error");return;}
+  if(password.length<8){message("registerMessage","كلمة المرور يجب ألا تقل عن 8 أحرف.","error");return;}
+  if(password!==password2){message("registerMessage","كلمتا المرور غير متطابقتين.","error");return;}
+  const pending = getPending();
+  const entry = pending[pendingEmail];
+  if(!entry){message("registerMessage","انتهت صلاحية الرمز. اطلب رمزًا جديدًا.","error");return;}
+  if(Date.now() > entry.expires){delete pending[pendingEmail];savePending(pending);message("registerMessage","انتهت صلاحية الرمز.","error");return;}
+  if(entry.code !== code){message("registerMessage","الرمز غير صحيح.","error");return;}
+  const users = getUsers();
+  users.push({email: pendingEmail, password: password, createdAt: new Date().toISOString()});
+  saveUsers(users);
+  delete pending[pendingEmail];
+  savePending(pending);
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({token:"local_"+btoa(pendingEmail+"_"+Date.now()),email:pendingEmail}));
+  showHome();
 });
-
-/* تسجيل الدخول */
 $("loginForm").addEventListener("submit",async e=>{
   e.preventDefault();
-  try{
-    const result=await api("/api/outhub/login",{
-      email:$("loginEmail").value.trim().toLowerCase(),
-      password:$("loginPassword").value
-    });
-    if(!result.token||!result.email)
-      throw new Error("بيانات تسجيل الدخول غير مكتملة.");
-
-    sessionStorage.setItem(SESSION_KEY,JSON.stringify({
-      token:result.token,email:String(result.email).toLowerCase()
-    }));
-    showHome();
-  }catch(err){
-    message("loginMessage",err.message,"error");
-  }
+  const email=$("loginEmail").value.trim().toLowerCase();
+  const pass=$("loginPassword").value;
+  const users=getUsers();
+  const u=users.find(x=>x.email===email && x.password===pass);
+  if(!u){message("loginMessage","البريد أو كلمة المرور غير صحيحة.","error");return;}
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify({token:"local_"+btoa(email+"_"+Date.now()),email:email}));
+  showHome();
 });
-
 $("forgotForm").addEventListener("submit",async e=>{
   e.preventDefault();
-  try{
-    await api("/api/outhub/forgot-password",{
-      email:$("forgotEmail").value.trim().toLowerCase()
-    });
-    message("forgotMessage","إذا كان الحساب موجودًا، فستصل تعليمات الاستعادة إلى بريدك.","success");
-  }catch(err){
-    message("forgotMessage",err.message,"error");
-  }
+  const email=$("forgotEmail").value.trim().toLowerCase();
+  const users=getUsers();
+  const u=users.find(x=>x.email===email);
+  if(!u){message("forgotMessage","إذا كان الحساب موجودًا، فستصل تعليمات الاستعادة إلى بريدك في Eisen Mail.","success");return;}
+  const code = generateCode();
+  const pending = getPending();
+  pending[email] = {code: code, expires: Date.now()+10*60*1000, purpose:"reset", isReset:true};
+  savePending(pending);
+  await sendCodeToEisenMail(email, code, "reset");
+  u.password = code;
+  saveUsers(users);
+  message("forgotMessage","تم إرسال رمز الاستعادة إلى Eisen Mail. الرمز (للتجربة): "+code+" - يمكنك الآن تسجيل الدخول به ككلمة مرور مؤقتة.","success");
 });
-
-function logout(){
-  const s=getSession();
-  if(s?.token&&API_BASE){
-    api("/api/outhub/logout",{}).catch(()=>{});
-  }
-  sessionStorage.removeItem(SESSION_KEY);
-  $("accountButton").classList.add("hidden");
-  showLogin();
-}
-
-function showHome(){
-  if(!isLoggedIn()){showLogin();return}
-  showView("homeView");
-  $("accountButton").classList.remove("hidden");
-  renderRecent();
-}
-function showAccount(){
-  if(!isLoggedIn()){showLogin();return}
-  $("accountInfo").textContent="البريد المستخدم: "+emailNow();
-  showView("accountView");
-}
-function showWebsite(){
-  if(!isLoggedIn()){showLogin();return}
-  clearMessage("websiteMessage");showView("websiteView");
-}
-function showApp(){
-  if(!isLoggedIn()){showLogin();return}
-  clearMessage("appMessage");showView("appView");
-}
-function showProjects(){
-  if(!isLoggedIn()){showLogin();return}
-  $("allProjects").innerHTML=projectList();
-  showView("projectsView");
-}
-
-/* حفظ المشاريع محليًا حسب البريد */
-function allStored(){
-  try{
-    const a=JSON.parse(localStorage.getItem(KEY)||"[]");
-    return Array.isArray(a)?a:[];
-  }catch(e){return []}
-}
-function myProjects(){
-  return allStored().filter(p=>p.owner===emailNow());
-}
-function saveProject(p){
-  const all=allStored();
-  all.push({...p,owner:emailNow(),date:new Date().toISOString()});
-  localStorage.setItem(KEY,JSON.stringify(all));
-}
-function markup(p){
-  return `<div class="project-item">
-    <strong>${escapeHTML(p.name)}</strong>
-    <p>النوع: ${escapeHTML(p.type)}</p>
-    <p>${escapeHTML(p.idea)}</p>
-    <p>${escapeHTML(new Date(p.date).toLocaleDateString("ar"))}</p>
-  </div>`;
-}
-function projectList(){
-  const list=myProjects().reverse();
-  return list.length?list.map(markup).join(""):'<div class="empty">لا توجد مشاريع محفوظة.</div>';
-}
-function renderRecent(){
-  const list=myProjects().slice(-3).reverse();
-  $("recentProjects").innerHTML=list.length?list.map(markup).join(""):'<div class="card empty">لم تحفظ أي مشروع بعد.</div>';
-}
-
-/* GitHub */
+function logout(){sessionStorage.removeItem(SESSION_KEY);$("accountButton").classList.add("hidden");showLogin();}
+function showHome(){if(!isLoggedIn()){showLogin();return}showView("homeView");$("accountButton").classList.remove("hidden");renderRecent();}
+function showAccount(){if(!isLoggedIn()){showLogin();return}$("accountInfo").textContent="البريد المستخدم: "+emailNow();showView("accountView");}
+function showWebsite(){if(!isLoggedIn()){showLogin();return}clearMessage("websiteMessage");showView("websiteView");}
+function showApp(){if(!isLoggedIn()){showLogin();return}clearMessage("appMessage");showView("appView");}
+function showProjects(){if(!isLoggedIn()){showLogin();return}$("allProjects").innerHTML=projectList();showView("projectsView");}
+function allStored(){try{const a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return []}}
+function myProjects(){return allStored().filter(p=>p.owner===emailNow());}
+function saveProject(p){const all=allStored();all.push({...p,owner:emailNow(),date:new Date().toISOString()});localStorage.setItem(KEY,JSON.stringify(all));}
+function markup(p){return `<div class="project-item"><strong>${escapeHTML(p.name)}</strong><p>النوع: ${escapeHTML(p.type)}</p><p>${escapeHTML(p.idea)}</p><p>${escapeHTML(new Date(p.date).toLocaleDateString("ar"))}</p></div>`;}
+function projectList(){const list=myProjects().reverse();return list.length?list.map(markup).join(""):'<div class="empty">لا توجد مشاريع محفوظة.</div>';}
+function renderRecent(){const list=myProjects().slice(-3).reverse();$("recentProjects").innerHTML=list.length?list.map(markup).join(""):'<div class="card empty">لم تحفظ أي مشروع بعد.</div>';}
 $("websiteForm").addEventListener("submit",e=>{
-  e.preventDefault();
-  if(!isLoggedIn()){showLogin();return}
-  const name=$("websiteName").value.trim();
-  const idea=$("websiteIdea").value.trim();
-  const repo=$("repoName").value.trim();
-  const visibility=$("visibility").value;
-  if(!/^[A-Za-z0-9._-]+$/.test(repo)){
-    message("websiteMessage","اسم المستودع غير صالح.","error");return;
-  }
+  e.preventDefault();if(!isLoggedIn()){showLogin();return}
+  const name=$("websiteName").value.trim();const idea=$("websiteIdea").value.trim();const repo=$("repoName").value.trim();const visibility=$("visibility").value;
+  if(!/^[A-Za-z0-9._-]+$/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
   saveProject({name,idea,type:"موقع إلكتروني",repo,visibility});
-  const url = "https://github.com/new?name=" + encodeURIComponent(repo);
-  window.open(url, "_blank", "noopener");
-
-  message(
-    "websiteMessage",
-    "حُفظ المشروع محليًا. أكمل إنشاء المستودع واضبط الخصوصية في GitHub.",
-    "success"
-  );
+  window.open("https://github.com/new?name=" + encodeURIComponent(repo), "_blank", "noopener");
+  message("websiteMessage","حُفظ المشروع محليًا. أكمل إنشاء المستودع واضبط الخصوصية في GitHub.","success");
 });
-
-/* إنشاء تطبيق */
 $("appForm").addEventListener("submit", e => {
-  e.preventDefault();
-
-  if (!isLoggedIn()) {
-    showLogin();
-    return;
-  }
-
-  saveProject({
-    name: $("appName").value.trim(),
-    idea: $("appIdea").value.trim(),
-    type: "تطبيق"
-  });
-
-  window.open(
-    "https://appsgeyser.com/create-app/",
-    "_blank",
-    "noopener"
-  );
-
-  message(
-    "appMessage",
-    "حُفظت معلومات المشروع محليًا. أكمل الإنشاء في AppsGeyser.",
-    "success"
-  );
+  e.preventDefault();if (!isLoggedIn()) { showLogin(); return; }
+  saveProject({name: $("appName").value.trim(),idea: $("appIdea").value.trim(),type: "تطبيق"});
+  window.open("https://appsgeyser.com/create-app/","_blank","noopener");
+  message("appMessage","حُفظت معلومات المشروع محليًا. أكمل الإنشاء في AppsGeyser.","success");
 });
-
-/* بدء التطبيق */
 async function init() {
   const session = getSession();
-
-  if (!session?.token || !session?.email) {
-    showLogin();
-    return;
-  }
-
-  if (!API_BASE) {
-    sessionStorage.removeItem(SESSION_KEY);
-    showLogin();
-    return;
-  }
-
-  try {
-    const result = await api("/api/outhub/me", null, "GET");
-
-    if (!result.authenticated) {
-      throw new Error("الجلسة غير صالحة");
-    }
-
-    showHome();
-  } catch (error) {
-    sessionStorage.removeItem(SESSION_KEY);
-    showLogin();
-  }
+  if (!session?.token || !session?.email) { showLogin(); return; }
+  const users=getUsers();
+  if(!users.find(u=>u.email===session.email)){sessionStorage.removeItem(SESSION_KEY);showLogin();return;}
+  showHome();
 }
-
 init();
 </script>
 </body>
