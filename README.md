@@ -31,6 +31,8 @@
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  
+  // تصدير النماذج والمصادقة للشبكة العامة بشكل آمن
   window.auth = auth;
   window.GoogleAuthProvider = GoogleAuthProvider;
   window.signInWithPopup = signInWithPopup;
@@ -38,6 +40,20 @@
   window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
   window.signOut = signOut;
   window.onAuthStateChanged = onAuthStateChanged;
+
+  // تعريف دالة تسجيل الدخول بجوجل مباشرة هنا لضمان عملها
+  window.loginWithGoogle = async function() {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      if (typeof window.message === "function") {
+        window.message("loginMessage", "فشل تسجيل الدخول بجوجل: " + error.message, "error");
+      } else {
+        alert("خطأ أثناء تسجيل الدخول بجوجل: " + error.message);
+      }
+    }
+  };
 </script>
 
 <style>
@@ -358,11 +374,14 @@ let pendingEmail = "";
 
 function $(id){return document.getElementById(id)}
 function escapeHTML(s){return String(s ?? "").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function message(id,text,type="info"){$(id).innerHTML='<div class="message '+type+'">'+escapeHTML(text)+'</div>';}
-function clearMessage(id){$(id).innerHTML=""}
+function message(id,text,type="info"){
+  const el = $(id);
+  if (el) el.innerHTML='<div class="message '+type+'">'+escapeHTML(text)+'</div>';
+}
+window.message = message;
+function clearMessage(id){const el = $(id); if (el) el.innerHTML=""}
 function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));$(id).classList.remove("hidden");window.scrollTo(0,0);}
 
-// التحقق من حالة المصادقة عبر Firebase وتفعيل التنقل
 window.addEventListener('DOMContentLoaded', () => {
   const checkAuth = setInterval(() => {
     if (window.onAuthStateChanged && window.auth) {
@@ -386,17 +405,7 @@ function showRegister(){showView("authView");$("loginPanel").classList.add("hidd
 function showForgot(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.remove("hidden");}
 function backToEmail(){$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");}
 
-// تسجيل الدخول بجوجل
-async function loginWithGoogle() {
-  try {
-    const provider = new window.GoogleAuthProvider();
-    await window.signInWithPopup(window.auth, provider);
-  } catch (error) {
-    message("loginMessage", "فشل تسجيل الدخول بجوجل: " + error.message, "error");
-  }
-}
-
-// طلب رمز التحقق الحقيقي والفريد عبر Eisen Mail
+// طلب رمز التحقق وعرضه لإرساله عبر Eisen Mail
 const reqForm = $("requestCodeForm");
 if (reqForm) {
   reqForm.addEventListener("submit", async e => {
@@ -489,13 +498,15 @@ function renderRecent(){const list=myProjects().slice(-3).reverse();$("recentPro
 
 const websiteForm = $("websiteForm");
 if (websiteForm) {
+  websiteForm id = $("websiteForm");
+if (websiteForm) {
   websiteForm.addEventListener("submit", e => {
     e.preventDefault();
     const name = $("websiteName").value.trim();
     const idea = $("websiteIdea").value.trim();
     const repo = $("repoName").value.trim();
     const visibility = $("visibility").value;
-    if(!/^[A-Za-9]+$/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
+    if(!/^[A-Za-z0-9._-]+$/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
     saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
     window.open("https://github.com/new?name=" + encodeURIComponent(repo), "_blank", "noopener");
     message("websiteMessage","حُفظ المشروع محليًا وتم توجيهك إلى GitHub.","success");
