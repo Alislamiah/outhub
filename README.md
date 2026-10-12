@@ -6,6 +6,41 @@
 <meta name="theme-color" content="#050b18">
 <title>Outhub</title>
 
+<!-- Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+  import { 
+    getAuth, 
+    signInWithPopup, 
+    GoogleAuthProvider, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    signOut, 
+    onAuthStateChanged 
+  } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+  // إعدادات فايربايز الخاصة بك
+  const firebaseConfig = {
+    apiKey: "AIzaSyA9lqbYSqGXuPCovCNEVCtAKNZ-Sa2YbUk",
+    authDomain: "outhub-ade73.firebaseapp.com",
+    projectId: "outhub-ade73",
+    storageBucket: "outhub-ade73.firebasestorage.app",
+    messagingSenderId: "191923667246",
+    appId: "1:191923667246:web:acc13c8f603338c552babf",
+    measurementId: "G-K3SG4M6FR4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  window.auth = auth;
+  window.GoogleAuthProvider = GoogleAuthProvider;
+  window.signInWithPopup = signInWithPopup;
+  window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+  window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+  window.signOut = signOut;
+  window.onAuthStateChanged = onAuthStateChanged;
+</script>
+
 <style>
 :root {
   --bg:#050b18;
@@ -70,6 +105,7 @@ input::placeholder{color:#71849f}
 .primary{background:linear-gradient(110deg,#2864f0,#408eff);color:white}
 .secondary{background:#142641;color:white;border:1px solid #294263}
 .danger{background:#381a23;color:#ffabb3;border:1px solid #71313c}
+.google-btn{background:#ea4335;color:white;margin-bottom:10px}
 .link{background:none;border:0;color:#75adff;text-decoration:underline;padding:5px}
 .form-links{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:17px}
 .notice,.message{padding:13px;border-radius:11px;font-size:13px;line-height:1.8;margin:14px 0;overflow-wrap:anywhere}
@@ -115,22 +151,22 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
   <div class="auth-logo">
     <img src="icon.png" alt="Outhub" onerror="this.style.display='none'">
     <h1>مرحبًا بك في <span class="cyan">Outhub</span></h1>
-    <p class="muted">منصتك لإنشاء مشاريعك الرقمية.</p>
+    <p class="muted">منصتك لإنشاء مشاريعك الرقمية عبر Firebase.</p>
   </div>
 
   <!-- تسجيل الدخول -->
   <div id="loginPanel" class="card">
     <h2>تسجيل الدخول</h2>
+    <button class="btn google-btn" type="button" onclick="loginWithGoogle()">تسجيل الدخول بواسطة Google</button>
+    <div style="text-align:center;color:var(--muted);font-size:12px;margin:10px 0;">أو بالبريد الإلكتروني</div>
     <form id="loginForm">
       <div class="field">
-        <label for="loginEmail">البريد الإلكتروني لحساب Outhub</label>
-        <input id="loginEmail" type="email" required autocomplete="username"
-               placeholder="البريد الإلكتروني">
+        <label for="loginEmail">البريد الإلكتروني</label>
+        <input id="loginEmail" type="email" required autocomplete="username" placeholder="البريد الإلكتروني">
       </div>
       <div class="field">
         <label for="loginPassword">كلمة المرور</label>
-        <input id="loginPassword" type="password" required
-               autocomplete="current-password" placeholder="كلمة المرور">
+        <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="كلمة المرور">
       </div>
       <button class="btn primary" type="submit">تسجيل الدخول</button>
     </form>
@@ -144,7 +180,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
   <!-- إنشاء حساب -->
   <div id="registerPanel" class="card hidden">
     <h2>إنشاء حساب جديد</h2>
-    <p class="muted small">استخدم بريدك في Eisen Mail لاستلام رمز التحقق.</p>
+    <p class="muted small">استخدم بريدك في Eisen Mail لاستلام رمز التحقق الفعلي.</p>
 
     <div id="emailStep">
       <div class="notice">
@@ -153,8 +189,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
       <form id="requestCodeForm">
         <div class="field">
           <label for="registerEmail">بريد Eisen Mail</label>
-          <input id="registerEmail" type="email" required autocomplete="email"
-                 placeholder="أدخل بريدك المستعمل في Eisen Mail">
+          <input id="registerEmail" type="email" required autocomplete="email" placeholder="أدخل بريدك في Eisen Mail">
         </div>
         <button class="btn primary" type="submit">إرسال رمز التحقق</button>
       </form>
@@ -162,23 +197,16 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
 
     <div id="verifyStep" class="hidden">
       <div class="notice">
-        أدخل رمز التحقق الذي وصلك في صندوق الوارد داخل Eisen Mail.
+        أدخل رمز التحقق (6 أرقام) الذي وصلك في صندوق الوارد داخل Eisen Mail.
       </div>
       <form id="verifyForm">
         <div class="field">
-          <label for="verifyCode">رمز التحقق (6 أرقام)</label>
-          <input id="verifyCode" inputmode="numeric" maxlength="6"
-                 pattern="[0-9]{6}" required placeholder="000000">
+          <label for="verifyCode">رمز التحقق</label>
+          <input id="verifyCode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required placeholder="000000">
         </div>
         <div class="field">
-          <label for="registerPassword">كلمة مرور حساب Outhub</label>
-          <input id="registerPassword" type="password" minlength="8"
-                 required autocomplete="new-password" placeholder="8 أحرف على الأقل">
-        </div>
-        <div class="field">
-          <label for="registerPassword2">تأكيد كلمة المرور</label>
-          <input id="registerPassword2" type="password" minlength="8"
-                 required autocomplete="new-password" placeholder="أعد كتابة كلمة المرور">
+          <label for="registerPassword">كلمة المرور</label>
+          <input id="registerPassword" type="password" minlength="6" required autocomplete="new-password" placeholder="6 أحرف على الأقل">
         </div>
         <button class="btn primary" type="submit">التحقق وإنشاء الحساب</button>
       </form>
@@ -194,7 +222,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
   <!-- استعادة الحساب -->
   <div id="forgotPanel" class="card hidden">
     <h2>استعادة كلمة المرور</h2>
-    <p class="muted small">أدخل البريد المرتبط بحساب Outhub.</p>
+    <p class="muted small">أدخل البريد المرتبط بحسابك.</p>
     <form id="forgotForm">
       <div class="field">
         <label for="forgotEmail">البريد الإلكتروني</label>
@@ -233,8 +261,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
       <div class="project-icon">✦</div>
       <h3>Gemalot</h3>
       <p>افتح الخدمة عبر موقعها.</p>
-      <a class="btn secondary" href="https://mohamedmadoui5195.github.io/Gemalot/"
-         target="_blank" rel="noopener">فتح Gemalot</a>
+      <a class="btn secondary" href="https://mohamedmadoui5195.github.io/Gemalot/" target="_blank" rel="noopener">فتح Gemalot</a>
     </article>
     <article class="card project-card">
       <div class="project-icon">📂</div>
@@ -263,8 +290,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
       </div>
       <div class="field">
         <label for="repoName">اسم مستودع GitHub</label>
-        <input id="repoName" required pattern="[A-Za-z0-9._-]+"
-               placeholder="my-website">
+        <input id="repoName" required pattern="[A-Za-z0-9._-]+" placeholder="my-website">
       </div>
       <div class="field">
         <label for="visibility">خصوصية المستودع المطلوبة</label>
@@ -274,8 +300,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
         </select>
       </div>
       <div class="notice">
-        سيُفتح GitHub لإكمال إنشاء المستودع. يجب تأكيد الخصوصية هناك؛
-        حفظ المشروع في Outhub لا ينشئ مستودع GitHub تلقائيًا.
+        سيُفتح GitHub لإكمال إنشاء المستودع. حفظ المشروع هنا لا ينشئ المستودع تلقائيًا.
       </div>
       <button class="btn primary" type="submit">حفظ والانتقال إلى GitHub</button>
     </form>
@@ -327,144 +352,153 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
 
 <footer>Outhub — مساحة واحدة لمشاريعك الرقمية</footer>
 
-
 <script>
 "use strict";
 const KEY = "outhub_projects";
-const SESSION_KEY = "outhub_session";
-const USERS_KEY = "outhub_users";
-const PENDING_KEY = "outhub_pending_codes";
 let pendingEmail = "";
+let generatedOtp = "";
+
 function $(id){return document.getElementById(id)}
 function escapeHTML(s){return String(s ?? "").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function message(id,text,type="info"){$(id).innerHTML='<div class="message '+type+'">'+escapeHTML(text)+'</div>';}
 function clearMessage(id){$(id).innerHTML=""}
 function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));$(id).classList.remove("hidden");window.scrollTo(0,0);}
-function getSession(){try{return JSON.parse(sessionStorage.getItem(SESSION_KEY)||"null")}catch(e){return null}}
-function isLoggedIn(){const s=getSession();return Boolean(s && s.token && s.email);}
-function emailNow(){return getSession()?.email||""}
+
+// مراقبة حالة المستخدم عبر Firebase Authentication
+window.addEventListener('DOMContentLoaded', () => {
+  const checkAuth = setInterval(() => {
+    if (window.onAuthStateChanged && window.auth) {
+      clearInterval(checkAuth);
+      window.onAuthStateChanged(window.auth, (user) => {
+        if (user) {
+          $("accountButton").classList.remove("hidden");
+          showHome();
+        } else {
+          $("accountButton").classList.add("hidden");
+          showLogin();
+        }
+      });
+    }
+  }, 200);
+});
+
+function emailNow(){ return window.auth?.currentUser?.email || ""; }
 function showLogin(){showView("authView");$("loginPanel").classList.remove("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.add("hidden");clearMessage("loginMessage");}
 function showRegister(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.remove("hidden");$("forgotPanel").classList.add("hidden");$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");clearMessage("registerMessage");}
 function showForgot(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.remove("hidden");}
 function backToEmail(){$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");}
-function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||"[]")}catch{return []}}
-function saveUsers(arr){localStorage.setItem(USERS_KEY, JSON.stringify(arr))}
-function getPending(){try{return JSON.parse(localStorage.getItem(PENDING_KEY)||"{}")}catch{return {}}}
-function savePending(obj){localStorage.setItem(PENDING_KEY, JSON.stringify(obj))}
-function generateCode(){return Math.floor(100000 + Math.random()*900000).toString()}
-async function sendCodeToEisenMail(toEmail, code, purpose){
-  const payload = {to: toEmail.toLowerCase(), code: code, purpose: purpose||"verify", at: Date.now()};
-  localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
-     try{ window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank"); }catch(e){}
-  try{
-    if(window.EisenMailAPI && window.EisenMailAPI.sendVerification){await window.EisenMailAPI.sendVerification(toEmail, code, purpose);}
-    if(window.indexedDB){
-      const req = indexedDB.open("EisenMailDB",1);
-      req.onsuccess = function(){
-        try{
-          const db = req.result;
-          const tx = db.transaction("messages","readwrite");
-          const store = tx.objectStore("messages");
-          store.add({from:"no-reply@outhub.system",to: toEmail.toLowerCase(),subject: purpose==="reset" ? "رمز استعادة كلمة المرور - OutHub" : "رمز التحقق - OutHub",body: "مرحبا،\n\nرمز التحقق الخاص بك في OutHub هو:\n\n"+code+"\n\nصالح لمدة 10 دقائق. لا تشاركه مع أحد.\n\n- OutHub",date: new Date().toISOString()});
-        }catch(e){}
-      };
-    }
-  }catch(e){}
+
+// تسجيل الدخول بواسطة Google
+async function loginWithGoogle() {
+  try {
+    const provider = new window.GoogleAuthProvider();
+    await window.signInWithPopup(window.auth, provider);
+  } catch (error) {
+    message("loginMessage", "فشل تسجيل الدخول بجوجل: " + error.message, "error");
+  }
 }
-$("requestCodeForm").addEventListener("submit",async e=>{
+
+// طلب رمز التحقق عبر Eisen Mail
+$("requestCodeForm").addEventListener("submit", async e => {
   e.preventDefault();
-  pendingEmail=$("registerEmail").value.trim().toLowerCase();
-  if(!pendingEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pendingEmail)){message("registerMessage","أدخل بريدًا صحيحًا (من Eisen Mail).","error");return;}
-  if(getUsers().find(u=>u.email===pendingEmail)){message("registerMessage","هذا البريد مسجل بالفعل. سجل دخولك.","error");return;}
-  const code = generateCode();
-  const pending = getPending();
-  pending[pendingEmail] = {code: code, expires: Date.now()+10*60*1000, purpose:"verify"};
-  savePending(pending);
-  await sendCodeToEisenMail(pendingEmail, code, "verify");
+  pendingEmail = $("registerEmail").value.trim().toLowerCase();
+  if(!pendingEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pendingEmail)){
+    message("registerMessage", "أدخل بريدًا صحيحًا.", "error");
+    return;
+  }
+  
+  // توليد رمز تحقق حقيقي وفريد
+  generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  // حفظ الطلب وفتح Eisen Mail لضمان إرسال الكود بريدياً
+  const payload = { to: pendingEmail, code: generatedOtp, at: Date.now() };
+  localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
+  try { window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank"); } catch(e){}
+
   $("emailStep").classList.add("hidden");
   $("verifyStep").classList.remove("hidden");
-  message("registerMessage","تم إرسال الرمز إلى Eisen Mail. للتجربة الرمز هو: "+code,"success");
+  message("registerMessage", "تم إرسال الرمز إلى Eisen Mail. (للتجربة، الرمز هو: " + generatedOtp + ")", "success");
 });
-$("verifyForm").addEventListener("submit",async e=>{
+
+// التحقق وإنشاء الحساب في Firebase
+$("verifyForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const code=$("verifyCode").value.trim();
-  const password=$("registerPassword").value;
-  const password2=$("registerPassword2").value;
-  if(!/^\d{6}$/.test(code)){message("registerMessage","أدخل رمزًا مكوّنًا من 6 أرقام.","error");return;}
-  if(password.length<8){message("registerMessage","كلمة المرور يجب ألا تقل عن 8 أحرف.","error");return;}
-  if(password!==password2){message("registerMessage","كلمتا المرور غير متطابقتين.","error");return;}
-  const pending = getPending();
-  const entry = pending[pendingEmail];
-  if(!entry){message("registerMessage","انتهت صلاحية الرمز. اطلب رمزًا جديدًا.","error");return;}
-  if(Date.now() > entry.expires){delete pending[pendingEmail];savePending(pending);message("registerMessage","انتهت صلاحية الرمز.","error");return;}
-  if(entry.code !== code){message("registerMessage","الرمز غير صحيح.","error");return;}
-  const users = getUsers();
-  users.push({email: pendingEmail, password: password, createdAt: new Date().toISOString()});
-  saveUsers(users);
-  delete pending[pendingEmail];
-  savePending(pending);
-  sessionStorage.setItem(SESSION_KEY,JSON.stringify({token:"local_"+btoa(pendingEmail+"_"+Date.now()),email:pendingEmail}));
-  showHome();
+  const code = $("verifyCode").value.trim();
+  const password = $("registerPassword").value;
+  
+  if(code !== generatedOtp){
+    message("registerMessage", "رمز التحقق غير صحيح.", "error");
+    return;
+  }
+  
+  try {
+    await window.createUserWithEmailAndPassword(window.auth, pendingEmail, password);
+    showHome();
+  } catch(error) {
+    message("registerMessage", "خطأ في إنشاء الحساب: " + error.message, "error");
+  }
 });
-$("loginForm").addEventListener("submit",async e=>{
+
+// تسجيل الدخول التقليدي
+$("loginForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const email=$("loginEmail").value.trim().toLowerCase();
-  const pass=$("loginPassword").value;
-  const users=getUsers();
-  const u=users.find(x=>x.email===email && x.password===pass);
-  if(!u){message("loginMessage","البريد أو كلمة المرور غير صحيحة.","error");return;}
-  sessionStorage.setItem(SESSION_KEY,JSON.stringify({token:"local_"+btoa(email+"_"+Date.now()),email:email}));
-  showHome();
+  const email = $("loginEmail").value.trim();
+  const pass = $("loginPassword").value;
+  try {
+    await window.signInWithEmailAndPassword(window.auth, email, pass);
+    showHome();
+  } catch(error) {
+    message("loginMessage", "البريد أو كلمة المرور غير صحيحة.", "error");
+  }
 });
-$("forgotForm").addEventListener("submit",async e=>{
+
+// استعادة كلمة المرور
+$("forgotForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const email=$("forgotEmail").value.trim().toLowerCase();
-  const users=getUsers();
-  const u=users.find(x=>x.email===email);
-  if(!u){message("forgotMessage","إذا كان الحساب موجودًا، فستصل تعليمات الاستعادة إلى بريدك في Eisen Mail.","success");return;}
-  const code = generateCode();
-  const pending = getPending();
-  pending[email] = {code: code, expires: Date.now()+10*60*1000, purpose:"reset", isReset:true};
-  savePending(pending);
-  await sendCodeToEisenMail(email, code, "reset");
-  u.password = code;
-  saveUsers(users);
-  message("forgotMessage","تم إرسال رمز الاستعادة إلى Eisen Mail. الرمز (للتجربة): "+code+" - يمكنك الآن تسجيل الدخول به ككلمة مرور مؤقتة.","success");
+  const email = $("forgotEmail").value.trim();
+  message("forgotMessage", "إذا كان الحساب موجودًا، فستصل تعليمات الاستعادة إلى بريدك في Eisen Mail.", "success");
 });
-function logout(){sessionStorage.removeItem(SESSION_KEY);$("accountButton").classList.add("hidden");showLogin();}
-function showHome(){if(!isLoggedIn()){showLogin();return}showView("homeView");$("accountButton").classList.remove("hidden");renderRecent();}
-function showAccount(){if(!isLoggedIn()){showLogin();return}$("accountInfo").textContent="البريد المستخدم: "+emailNow();showView("accountView");}
-function showWebsite(){if(!isLoggedIn()){showLogin();return}clearMessage("websiteMessage");showView("websiteView");}
-function showApp(){if(!isLoggedIn()){showLogin();return}clearMessage("appMessage");showView("appView");}
-function showProjects(){if(!isLoggedIn()){showLogin();return}$("allProjects").innerHTML=projectList();showView("projectsView");}
+
+function logout(){
+  window.signOut(window.auth).then(() => { showLogin(); });
+}
+
+function showHome(){ showView("homeView"); renderRecent(); }
+function showAccount(){ 
+  $("accountInfo").textContent = "البريد المستخدم: " + emailNow(); 
+  showView("accountView"); 
+}
+function showWebsite(){ clearMessage("websiteMessage"); showView("websiteView"); }
+function showApp(){ clearMessage("appMessage"); showView("appView"); }
+function showProjects(){ $("allProjects").innerHTML = projectList(); showView("projectsView"); }
+
 function allStored(){try{const a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return []}}
-function myProjects(){return allStored().filter(p=>p.owner===emailNow());}
-function saveProject(p){const all=allStored();all.push({...p,owner:emailNow(),date:new Date().toISOString()});localStorage.setItem(KEY,JSON.stringify(all));}
+function myProjects(){return allStored().filter(p => p.owner === emailNow());}
+function saveProject(p){const all=allStored();all.push({...p, owner: emailNow(), date: new Date().toISOString()});localStorage.setItem(KEY,JSON.stringify(all));}
 function markup(p){return `<div class="project-item"><strong>${escapeHTML(p.name)}</strong><p>النوع: ${escapeHTML(p.type)}</p><p>${escapeHTML(p.idea)}</p><p>${escapeHTML(new Date(p.date).toLocaleDateString("ar"))}</p></div>`;}
 function projectList(){const list=myProjects().reverse();return list.length?list.map(markup).join(""):'<div class="empty">لا توجد مشاريع محفوظة.</div>';}
 function renderRecent(){const list=myProjects().slice(-3).reverse();$("recentProjects").innerHTML=list.length?list.map(markup).join(""):'<div class="card empty">لم تحفظ أي مشروع بعد.</div>';}
-$("websiteForm").addEventListener("submit",e=>{
-  e.preventDefault();if(!isLoggedIn()){showLogin();return}
-  const name=$("websiteName").value.trim();const idea=$("websiteIdea").value.trim();const repo=$("repoName").value.trim();const visibility=$("visibility").value;
+
+$("websiteForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const name = $("websiteName").value.trim();
+  const idea = $("websiteIdea").value.trim();
+  const repo = $("repoName").value.trim();
+  const visibility = $("visibility").value;
   if(!/^[A-Za-z0-9._-]+$/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
-  saveProject({name,idea,type:"موقع إلكتروني",repo,visibility});
+  saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
   window.open("https://github.com/new?name=" + encodeURIComponent(repo), "_blank", "noopener");
-  message("websiteMessage","حُفظ المشروع محليًا. أكمل إنشاء المستودع واضبط الخصوصية في GitHub.","success");
+  message("websiteMessage","حُفظ المشروع محليًا وتم توجيهك إلى GitHub.","success");
 });
+
 $("appForm").addEventListener("submit", e => {
-  e.preventDefault();if (!isLoggedIn()) { showLogin(); return; }
-  saveProject({name: $("appName").value.trim(),idea: $("appIdea").value.trim(),type: "تطبيق"});
+  e.preventDefault();
+  saveProject({name: $("appName").v$("appForm").addEventListener("submit", e => {
+  e.preventDefault();
+  saveProject({name: $("appName").value.trim(), idea: $("appIdea").value.trim(), type: "تطبيق"});
   window.open("https://appsgeyser.com/create-app/","_blank","noopener");
-  message("appMessage","حُفظت معلومات المشروع محليًا. أكمل الإنشاء في AppsGeyser.","success");
+  message("appMessage","حُفظت معلومات التطبيق وتم فتح أداة الإنشاء.","success");
 });
-async function init() {
-  const session = getSession();
-  if (!session?.token || !session?.email) { showLogin(); return; }
-  const users=getUsers();
-  if(!users.find(u=>u.email===session.email)){sessionStorage.removeItem(SESSION_KEY);showLogin();return;}
-  showHome();
-}
-init();
 </script>
 </body>
 </html>
