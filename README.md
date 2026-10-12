@@ -353,25 +353,9 @@ function getPending(){try{return JSON.parse(localStorage.getItem(PENDING_KEY)||"
 function savePending(obj){localStorage.setItem(PENDING_KEY, JSON.stringify(obj))}
 function generateCode(){return Math.floor(100000 + Math.random()*900000).toString()}
 async function sendCodeToEisenMail(toEmail, code, purpose){
-     const payload = {to: toEmail.toLowerCase(), code: code, purpose: purpose||"verify", at: Date.now()};
-     // 1. localStorage - يقرأه Eisen Mail حتى لو في نفس المتصفح
-     try{ localStorage.setItem("outhub_send_code_request", JSON.stringify(payload)); }catch(e){}
-     try{ localStorage.setItem("outhub_last_code_"+toEmail.toLowerCase(), JSON.stringify(payload));
-     // فتح Eisen Mail تلقائيا لضمان وصول الرسالة
-     try{
-       const eisenUrl = "https://mohamedmadoui5195.github.io/Eisen-mail/";
-       window.open(eisenUrl, "_blank");
-     }catch(e){}
- }catch(e){}
-     // 2. BroadcastChannel للتبليغ الفوري
-     try{
-       const bc = new BroadcastChannel("outhub_eisen_channel");
-       bc.postMessage(payload);
-       bc.close();
-     }catch(e){}
-
   const payload = {to: toEmail.toLowerCase(), code: code, purpose: purpose||"verify", at: Date.now()};
   localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
+     try{ window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank"); }catch(e){}
   try{
     if(window.EisenMailAPI && window.EisenMailAPI.sendVerification){await window.EisenMailAPI.sendVerification(toEmail, code, purpose);}
     if(window.indexedDB){
