@@ -403,7 +403,7 @@ function showRegister(){showView("authView");$("loginPanel").classList.add("hidd
 function showForgot(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.remove("hidden");}
 function backToEmail(){$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");}
 
-// حقن رمز التحقق مباشرة في IndexedDB الخاصة بـ Eisen Mail مع دعم التوافق التام
+// حقن رمز التحقق في IndexedDB الخاصة بـ Eisen Mail وإرسال الطلب عبر LocalStorage
 const reqForm = $("requestCodeForm");
 if (reqForm) {
   reqForm.addEventListener("submit", async e => {
@@ -434,7 +434,7 @@ if (reqForm) {
       };
     } catch(err) {}
 
-    // تخزين احتياطي في LocalStorage للنسخ الأخرى
+    // تخزين في LocalStorage ليتم التقاطه أيضاً
     const payload = {to: pendingEmail, code: generatedOtp, at: Date.now()};
     localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
 
@@ -513,31 +513,33 @@ function showProjects(){ $("allProjects").innerHTML = projectList(); showView("p
 function allStored(){try{const a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return []}}
 function myProjects(){return allStored().filter(p => p.owner === emailNow());}
 function saveProject(p){const all=allStored();all.push({...p, owner: emailNow(), date: new Date().toISOString()});localStorage.setItem(KEY,JSON.stringify(all));}
-function markup(p){return <div class="project-item"><strong>${escapeHTML(p.name)}</strong><p>النوع: ${escapeHTML(p.type)}</p><p>${escapeHTML(p.idea)}</p><p>${escapeHTML(new Date(p.date).toLocaleDateString("ar"))}</p></div>;}
+function markup(p){return `<div class="project-item"><strong>${escapeHTML(p.name)}</strong><p>النوع: ${escapeHTML(p.type)}</p><p>${escapeHTML(p.idea)}</p><p>${escapeHTML(new Date(p.date).toLocaleDateString("ar"))}</p></div>`;}
 function projectList(){const list=myProjects().reverse();return list.length?list.map(markup).join(""):'<div class="empty">لا توجد مشاريع محفوظة.</div>';}
 function renderRecent(){const list=myProjects().slice(-3).reverse();$("recentProjects").innerHTML=list.length?list.map(markup).join(""):'<div class="card empty">لم تحفظ أي مشروع بعد.</div>';}
+
 const websiteForm = $("websiteForm");
 if (websiteForm) {
-websiteForm.addEventListener("submit", e => {
-e.preventDefault();
-const name = $("websiteName").value.trim();
-const idea = $("websiteIdea").value.trim();
-const repo = $("repoName").value.trim();
-const visibility = ("visibility").value;
-if(!/^[A-Za-z0-9._-]+/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
-saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
-window.open("https://github.com/new?name=" + encodeURIComponent(repo), "_blank", "noopener");
-message("websiteMessage","حُفظ المشروع محليًا وتم توجيهك إلى GitHub.","success");
-});
+  websiteForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("websiteName").value.trim();
+    const idea = $("websiteIdea").value.trim();
+    const repo = $("repoName").value.trim();
+    const visibility = $("visibility").value;
+    if(!/^[A-Za-z0-9._-]+$/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
+    saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
+    window.open("https://github.com/new?name=" + encodeURIComponent(repo), "_blank", "noopener");
+    message("websiteMessage","حُفظ المشروع محليًا وتم توجيهك إلى GitHub.","success");
+  });
 }
+
 const appForm = $("appForm");
 if (appForm) {
-appForm.addEventListener("submit", e => {
-e.preventDefault();
-saveProject({name: $("appName").value.trim(), idea: $("appIdea").value.trim(), type: "تطبيق"});
-window.open("https://appsgeyser.com/create-app/","_blank","noopener");
-message("appMessage","حُفظت معلومات التطبيق وتم فتح أداة الإنشاء.","success");
-});
+  appForm.addEventListener("submit", e => {
+    e.preventDefault();
+    saveProject({name: $("appName").value.trim(), idea: $("appIdea").value.trim(), type: "تطبيق"});
+    window.open("https://appsgeyser.com/create-app/","_blank","noopener");
+    message("appMessage","حُفظت معلومات التطبيق وتم فتح أداة الإنشاء.","success");
+  });
 }
 </script>
 </body>
