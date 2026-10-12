@@ -19,7 +19,6 @@
     onAuthStateChanged 
   } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 
-  // إعدادات فايربايز الخاصة بك
   const firebaseConfig = {
     apiKey: "AIzaSyA9lqbYSqGXuPCovCNEVCtAKNZ-Sa2YbUk",
     authDomain: "outhub-ade73.firebaseapp.com",
@@ -139,19 +138,18 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
     <img src="icon.png" alt="Outhub" onerror="this.style.display='none'">
     <div>Out<span>hub</span></div>
   </div>
-  <button id="accountButton" class="btn secondary hidden"
-          style="width:auto;margin:0" onclick="showAccount()">حسابي</button>
+  <button id="accountButton" class="btn secondary hidden" style="width:auto;margin:0" onclick="showAccount()">حسابي</button>
 </header>
 
 <main class="container">
 
-<!-- الحساب -->
+<!-- الحساب / تسجيل الدخول -->
 <section id="authView" class="view">
 <div class="auth">
   <div class="auth-logo">
     <img src="icon.png" alt="Outhub" onerror="this.style.display='none'">
     <h1>مرحبًا بك في <span class="cyan">Outhub</span></h1>
-    <p class="muted">منصتك لإنشاء مشاريعك الرقمية عبر Firebase.</p>
+    <p class="muted">منصتك لإنشاء مشاريعك الرقمية.</p>
   </div>
 
   <!-- تسجيل الدخول -->
@@ -161,7 +159,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
     <div style="text-align:center;color:var(--muted);font-size:12px;margin:10px 0;">أو بالبريد الإلكتروني</div>
     <form id="loginForm">
       <div class="field">
-        <label for="loginEmail">البريد الإلكتروني</label>
+        <label for="loginEmail">البريد الإلكتروني لحساب Outhub</label>
         <input id="loginEmail" type="email" required autocomplete="username" placeholder="البريد الإلكتروني">
       </div>
       <div class="field">
@@ -172,15 +170,15 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
     </form>
     <div id="loginMessage"></div>
     <div class="form-links">
-      <button class="link" onclick="showRegister()">إنشاء حساب</button>
-      <button class="link" onclick="showForgot()">نسيت كلمة المرور؟</button>
+      <button class="link" type="button" onclick="showRegister()">إنشاء حساب</button>
+      <button class="link" type="button" onclick="showForgot()">نسيت كلمة المرور؟</button>
     </div>
   </div>
 
   <!-- إنشاء حساب -->
   <div id="registerPanel" class="card hidden">
     <h2>إنشاء حساب جديد</h2>
-    <p class="muted small">استخدم بريدك في Eisen Mail لاستلام رمز التحقق الفعلي.</p>
+    <p class="muted small">استخدم بريدك في Eisen Mail لاستلام رمز التحقق.</p>
 
     <div id="emailStep">
       <div class="notice">
@@ -189,7 +187,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
       <form id="requestCodeForm">
         <div class="field">
           <label for="registerEmail">بريد Eisen Mail</label>
-          <input id="registerEmail" type="email" required autocomplete="email" placeholder="أدخل بريدك في Eisen Mail">
+          <input id="registerEmail" type="email" required autocomplete="email" placeholder="أدخل بريدك المستعمل في Eisen Mail">
         </div>
         <button class="btn primary" type="submit">إرسال رمز التحقق</button>
       </form>
@@ -197,32 +195,32 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
 
     <div id="verifyStep" class="hidden">
       <div class="notice">
-        أدخل رمز التحقق (6 أرقام) الذي وصلك في صندوق الوارد داخل Eisen Mail.
+        أدخل رمز التحقق الذي وصلك في صندوق الوارد داخل Eisen Mail.
       </div>
       <form id="verifyForm">
         <div class="field">
-          <label for="verifyCode">رمز التحقق</label>
+          <label for="verifyCode">رمز التحقق (6 أرقام)</label>
           <input id="verifyCode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required placeholder="000000">
         </div>
         <div class="field">
-          <label for="registerPassword">كلمة المرور</label>
+          <label for="registerPassword">كلمة مرور حساب Outhub</label>
           <input id="registerPassword" type="password" minlength="6" required autocomplete="new-password" placeholder="6 أحرف على الأقل">
         </div>
         <button class="btn primary" type="submit">التحقق وإنشاء الحساب</button>
       </form>
-      <button class="link" onclick="backToEmail()">تغيير البريد الإلكتروني</button>
+      <button class="link" type="button" onclick="backToEmail()">تغيير البريد الإلكتروني</button>
     </div>
 
     <div id="registerMessage"></div>
     <div class="form-links">
-      <button class="link" onclick="showLogin()">لدي حساب بالفعل</button>
+      <button class="link" type="button" onclick="showLogin()">لدي حساب بالفعل</button>
     </div>
   </div>
 
   <!-- استعادة الحساب -->
   <div id="forgotPanel" class="card hidden">
     <h2>استعادة كلمة المرور</h2>
-    <p class="muted small">أدخل البريد المرتبط بحسابك.</p>
+    <p class="muted small">أدخل البريد المرتبط بحساب Outhub.</p>
     <form id="forgotForm">
       <div class="field">
         <label for="forgotEmail">البريد الإلكتروني</label>
@@ -231,7 +229,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
       <button class="btn primary" type="submit">طلب الاستعادة</button>
     </form>
     <div id="forgotMessage"></div>
-    <button class="link" onclick="showLogin()">العودة لتسجيل الدخول</button>
+    <button class="link" type="button" onclick="showLogin()">العودة لتسجيل الدخول</button>
   </div>
 </div>
 </section>
@@ -300,12 +298,12 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
         </select>
       </div>
       <div class="notice">
-        سيُفتح GitHub لإكمال إنشاء المستودع. حفظ المشروع هنا لا ينشئ المستودع تلقائيًا.
+        سيُفتح GitHub لإكمال إنشاء المستودع. يجب تأكيد الخصوصية هناك؛ حفظ المشروع في Outhub لا ينشئ مستودع GitHub تلقائيًا.
       </div>
       <button class="btn primary" type="submit">حفظ والانتقال إلى GitHub</button>
     </form>
     <div id="websiteMessage"></div>
-    <button class="btn secondary" onclick="showHome()">العودة إلى الرئيسية</button>
+    <button class="btn secondary" type="button" onclick="showHome()">العودة إلى الرئيسية</button>
   </div>
 </section>
 
@@ -325,7 +323,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
       <button class="btn primary" type="submit">حفظ وفتح أداة الإنشاء</button>
     </form>
     <div id="appMessage"></div>
-    <button class="btn secondary" onclick="showHome()">العودة إلى الرئيسية</button>
+    <button class="btn secondary" type="button" onclick="showHome()">العودة إلى الرئيسية</button>
   </div>
 </section>
 
@@ -334,7 +332,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
   <div class="card">
     <h2>مشاريعي</h2>
     <div id="allProjects"></div>
-    <button class="btn primary" onclick="showHome()">العودة إلى الرئيسية</button>
+    <button class="btn primary" type="button" onclick="showHome()">العودة إلى الرئيسية</button>
   </div>
 </section>
 
@@ -343,8 +341,8 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
   <div class="card">
     <h2>حسابي</h2>
     <div id="accountInfo" class="notice"></div>
-    <button class="btn secondary" onclick="showHome()">العودة إلى الرئيسية</button>
-    <button class="btn danger" onclick="logout()">تسجيل الخروج</button>
+    <button class="btn secondary" type="button" onclick="showHome()">العودة إلى الرئيسية</button>
+    <button class="btn danger" type="button" onclick="logout()">تسجيل الخروج</button>
   </div>
 </section>
 
@@ -355,8 +353,8 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
 <script>
 "use strict";
 const KEY = "outhub_projects";
-let pendingEmail = "";
 let generatedOtp = "";
+let pendingEmail = "";
 
 function $(id){return document.getElementById(id)}
 function escapeHTML(s){return String(s ?? "").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -364,7 +362,7 @@ function message(id,text,type="info"){$(id).innerHTML='<div class="message '+typ
 function clearMessage(id){$(id).innerHTML=""}
 function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));$(id).classList.remove("hidden");window.scrollTo(0,0);}
 
-// مراقبة حالة المستخدم عبر Firebase Authentication
+// التحقق من حالة المصادقة عبر Firebase وتفعيل التنقل
 window.addEventListener('DOMContentLoaded', () => {
   const checkAuth = setInterval(() => {
     if (window.onAuthStateChanged && window.auth) {
@@ -388,7 +386,7 @@ function showRegister(){showView("authView");$("loginPanel").classList.add("hidd
 function showForgot(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.remove("hidden");}
 function backToEmail(){$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");}
 
-// تسجيل الدخول بواسطة Google
+// تسجيل الدخول بجوجل
 async function loginWithGoogle() {
   try {
     const provider = new window.GoogleAuthProvider();
@@ -398,36 +396,33 @@ async function loginWithGoogle() {
   }
 }
 
-// طلب رمز التحقق عبر Eisen Mail
+// طلب رمز التحقق وعرضه لإرساله عبر Eisen Mail
 $("requestCodeForm").addEventListener("submit", async e => {
   e.preventDefault();
   pendingEmail = $("registerEmail").value.trim().toLowerCase();
   if(!pendingEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pendingEmail)){
-    message("registerMessage", "أدخل بريدًا صحيحًا.", "error");
+    message("registerMessage","أدخل بريدًا صحيحًا.","error");
     return;
   }
+  generatedOtp = Math.floor(100000 + Math.random()*900000).toString();
   
-  // توليد رمز تحقق حقيقي وفريد
-  generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-  
-  // حفظ الطلب وفتح Eisen Mail لضمان إرسال الكود بريدياً
-  const payload = { to: pendingEmail, code: generatedOtp, at: Date.now() };
+  const payload = {to: pendingEmail, code: generatedOtp, at: Date.now()};
   localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
   try { window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank"); } catch(e){}
 
   $("emailStep").classList.add("hidden");
   $("verifyStep").classList.remove("hidden");
-  message("registerMessage", "تم إرسال الرمز إلى Eisen Mail. (للتجربة، الرمز هو: " + generatedOtp + ")", "success");
+  message("registerMessage","تم توليد وإرسال الرمز إلى Eisen Mail. الرمز للتجربة: "+generatedOtp,"success");
 });
 
-// التحقق وإنشاء الحساب في Firebase
+// إتمام التحقق وإنشاء الحساب
 $("verifyForm").addEventListener("submit", async e => {
   e.preventDefault();
   const code = $("verifyCode").value.trim();
   const password = $("registerPassword").value;
   
   if(code !== generatedOtp){
-    message("registerMessage", "رمز التحقق غير صحيح.", "error");
+    message("registerMessage","رمز التحقق غير صحيح.","error");
     return;
   }
   
@@ -435,11 +430,11 @@ $("verifyForm").addEventListener("submit", async e => {
     await window.createUserWithEmailAndPassword(window.auth, pendingEmail, password);
     showHome();
   } catch(error) {
-    message("registerMessage", "خطأ في إنشاء الحساب: " + error.message, "error");
+    message("registerMessage","خطأ في إنشاء الحساب: " + error.message, "error");
   }
 });
 
-// تسجيل الدخول التقليدي
+// تسجيل الدخول العادي
 $("loginForm").addEventListener("submit", async e => {
   e.preventDefault();
   const email = $("loginEmail").value.trim();
@@ -448,21 +443,22 @@ $("loginForm").addEventListener("submit", async e => {
     await window.signInWithEmailAndPassword(window.auth, email, pass);
     showHome();
   } catch(error) {
-    message("loginMessage", "البريد أو كلمة المرور غير صحيحة.", "error");
+    message("loginMessage","البريد أو كلمة المرور غير صحيحة.", "error");
   }
 });
 
-// استعادة كلمة المرور
+// طلب الاستعادة
 $("forgotForm").addEventListener("submit", async e => {
   e.preventDefault();
   const email = $("forgotEmail").value.trim();
-  message("forgotMessage", "إذا كان الحساب موجودًا، فستصل تعليمات الاستعادة إلى بريدك في Eisen Mail.", "success");
+  message("forgotMessage","إذا كان الحساب موجودًا، فستصل تعليمات الاستعادة إلى بريدك في Eisen Mail.", "success");
 });
 
 function logout(){
   window.signOut(window.auth).then(() => { showLogin(); });
 }
 
+// دوال التنقل وإدارة المشاريع
 function showHome(){ showView("homeView"); renderRecent(); }
 function showAccount(){ 
   $("accountInfo").textContent = "البريد المستخدم: " + emailNow(); 
@@ -491,9 +487,7 @@ $("websiteForm").addEventListener("submit", e => {
   message("websiteMessage","حُفظ المشروع محليًا وتم توجيهك إلى GitHub.","success");
 });
 
-$("appForm").addEventListener("submit", e => {
-  e.preventDefault();
-  saveProject({name: $("appName").v$("appForm").addEventListener("submit", e => {
+$("appForm").addEventLi$("appForm").addEventListener("submit", e => {
   e.preventDefault();
   saveProject({name: $("appName").value.trim(), idea: $("appIdea").value.trim(), type: "تطبيق"});
   window.open("https://appsgeyser.com/create-app/","_blank","noopener");
