@@ -403,6 +403,7 @@ function showRegister(){showView("authView");$("loginPanel").classList.add("hidd
 function showForgot(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.remove("hidden");}
 function backToEmail(){$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");}
 
+// إرسال طلب رمز التحقق وتخزينه ليلتقطه Eisen Mail تلقائياً عبر LocalStorage
 const reqForm = $("requestCodeForm");
 if (reqForm) {
   reqForm.addEventListener("submit", async e => {
@@ -420,10 +421,11 @@ if (reqForm) {
 
     $("emailStep").classList.add("hidden");
     $("verifyStep").classList.remove("hidden");
-    message("registerMessage","تم توليد وإرسال الرمز إلى Eisen Mail. الرمز للتجربة: "+generatedOtp,"success");
+    message("registerMessage","تم إرسال رمز التحقق إلى بريدك في Eisen Mail. يرجى تفقد صندوق الوارد هناك.","success");
   });
 }
 
+// إتمام التحقق وإنشاء الحساب في Firebase
 const verifyForm = $("verifyForm");
 if (verifyForm) {
   verifyForm.addEventListener("submit", async e => {
@@ -445,6 +447,7 @@ if (verifyForm) {
   });
 }
 
+// تسجيل الدخول العادي
 const loginForm = $("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async e => {
@@ -460,6 +463,7 @@ if (loginForm) {
   });
 }
 
+// طلب الاستعادة
 const forgotForm = $("forgotForm");
 if (forgotForm) {
   forgotForm.addEventListener("submit", async e => {
@@ -473,6 +477,7 @@ function logout(){
   window.signOut(window.auth).then(() => { showLogin(); });
 }
 
+// دوال التنقل وإدارة المشاريع
 function showHome(){ showView("homeView"); renderRecent(); }
 function showAccount(){ 
   $("accountInfo").textContent = "البريد المستخدم: " + emailNow(); 
@@ -506,7 +511,7 @@ if (websiteForm) {
 
 const appForm = $("appForm");
 if (appForm) {
-  appForm.appForm = appForm.addEventListener("submit", e => {
+  appForm.addEventListener("submit", e => {
     e.preventDefault();
     saveProject({name: $("appName").value.trim(), idea: $("appIdea").value.trim(), type: "تطبيق"});
     window.open("https://appsgeyser.com/create-app/","_blank","noopener");
