@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#050b18">
 <title>Outhub</title>
 
-<!-- Firebase SDKs -->
+<!-- Firebase SDKs - محفوظ كما هو -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
   import { 
@@ -32,7 +32,6 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   
-  // تصدير النطاقات العامة لضمان عمل كافة الوظائف البرمجية
   window.auth = auth;
   window.GoogleAuthProvider = GoogleAuthProvider;
   window.signInWithPopup = signInWithPopup;
@@ -158,7 +157,6 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
 
 <main class="container">
 
-<!-- الحساب / تسجيل الدخول -->
 <section id="authView" class="view">
 <div class="auth">
   <div class="auth-logo">
@@ -167,7 +165,6 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
     <p class="muted">منصتك لإنشاء مشاريعك الرقمية.</p>
   </div>
 
-  <!-- تسجيل الدخول -->
   <div id="loginPanel" class="card">
     <h2>تسجيل الدخول</h2>
     <button class="btn google-btn" type="button" onclick="loginWithGoogle()">تسجيل الدخول بواسطة Google</button>
@@ -190,15 +187,12 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
     </div>
   </div>
 
-  <!-- إنشاء حساب -->
   <div id="registerPanel" class="card hidden">
     <h2>إنشاء حساب جديد</h2>
     <p class="muted small">استخدم بريدك في Eisen Mail لاستلام رمز التحقق.</p>
 
     <div id="emailStep">
-      <div class="notice">
-        يرجى استخدام بريدك المستعمل في Eisen Mail
-      </div>
+      <div class="notice">يرجى استخدام بريدك المستعمل في Eisen Mail</div>
       <form id="requestCodeForm">
         <div class="field">
           <label for="registerEmail">بريد Eisen Mail</label>
@@ -209,9 +203,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
     </div>
 
     <div id="verifyStep" class="hidden">
-      <div class="notice">
-        أدخل رمز التحقق الذي وصلك في صندوق الوارد داخل Eisen Mail.
-      </div>
+      <div class="notice">أدخل رمز التحقق الذي وصلك في صندوق الوارد داخل Eisen Mail.</div>
       <form id="verifyForm">
         <div class="field">
           <label for="verifyCode">رمز التحقق (6 أرقام)</label>
@@ -232,7 +224,6 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
     </div>
   </div>
 
-  <!-- استعادة الحساب -->
   <div id="forgotPanel" class="card hidden">
     <h2>استعادة كلمة المرور</h2>
     <p class="muted small">أدخل البريد المرتبط بحساب Outhub.</p>
@@ -249,14 +240,12 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
 </div>
 </section>
 
-<!-- الرئيسية -->
 <section id="homeView" class="view hidden">
   <div class="hero">
     <h1>مشاريعك تبدأ من <span class="cyan">Outhub</span></h1>
     <p>مساحة واحدة للانطلاق بمواقعك الإلكترونية وتطبيقاتك.</p>
     <button class="btn primary" style="width:auto" onclick="showWebsite()">+ ابدأ مشروعك</button>
   </div>
-
   <div class="grid">
     <article class="card project-card">
       <div class="project-icon">🌐</div>
@@ -283,38 +272,19 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
       <button class="btn secondary" onclick="showProjects()">عرض مشاريعي</button>
     </article>
   </div>
-
   <h2 class="section-title">آخر المشاريع</h2>
   <div id="recentProjects"></div>
 </section>
 
-<!-- إنشاء موقع -->
 <section id="websiteView" class="view hidden">
   <div class="card">
     <h2>إنشاء موقع إلكتروني</h2>
     <form id="websiteForm">
-      <div class="field">
-        <label for="websiteName">اسم المشروع</label>
-        <input id="websiteName" required placeholder="اسم الموقع">
-      </div>
-      <div class="field">
-        <label for="websiteIdea">فكرة الموقع</label>
-        <input id="websiteIdea" required placeholder="اشرح فكرة الموقع">
-      </div>
-      <div class="field">
-        <label for="repoName">اسم مستودع GitHub</label>
-        <input id="repoName" required pattern="[A-Za-z0-9._-]+" placeholder="my-website">
-      </div>
-      <div class="field">
-        <label for="visibility">خصوصية المستودع المطلوبة</label>
-        <select id="visibility">
-          <option value="private">خاص — Private</option>
-          <option value="public">علني — Public</option>
-        </select>
-      </div>
-      <div class="notice">
-        سيُفتح GitHub لإكمال إنشاء المستودع. يجب تأكيد الخصوصية هناك؛ حفظ المشروع في Outhub لا ينشئ مستودع GitHub تلقائيًا.
-      </div>
+      <div class="field"><label for="websiteName">اسم المشروع</label><input id="websiteName" required placeholder="اسم الموقع"></div>
+      <div class="field"><label for="websiteIdea">فكرة الموقع</label><input id="websiteIdea" required placeholder="اشرح فكرة الموقع"></div>
+      <div class="field"><label for="repoName">اسم مستودع GitHub</label><input id="repoName" required pattern="[A-Za-z0-9._-]+" placeholder="my-website"></div>
+      <div class="field"><label for="visibility">خصوصية المستودع المطلوبة</label><select id="visibility"><option value="private">خاص — Private</option><option value="public">علني — Public</option></select></div>
+      <div class="notice">سيُفتح GitHub لإكمال إنشاء المستودع. يجب تأكيد الخصوصية هناك؛ حفظ المشروع في Outhub لا ينشئ مستودع GitHub تلقائيًا.</div>
       <button class="btn primary" type="submit">حفظ والانتقال إلى GitHub</button>
     </form>
     <div id="websiteMessage"></div>
@@ -322,19 +292,12 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
   </div>
 </section>
 
-<!-- إنشاء تطبيق -->
 <section id="appView" class="view hidden">
   <div class="card">
     <h2>إنشاء تطبيق</h2>
     <form id="appForm">
-      <div class="field">
-        <label for="appName">اسم التطبيق</label>
-        <input id="appName" required placeholder="اسم التطبيق">
-      </div>
-      <div class="field">
-        <label for="appIdea">فكرة التطبيق</label>
-        <input id="appIdea" required placeholder="ما وظيفة التطبيق؟">
-      </div>
+      <div class="field"><label for="appName">اسم التطبيق</label><input id="appName" required placeholder="اسم التطبيق"></div>
+      <div class="field"><label for="appIdea">فكرة التطبيق</label><input id="appIdea" required placeholder="ما وظيفة التطبيق؟"></div>
       <button class="btn primary" type="submit">حفظ وفتح أداة الإنشاء</button>
     </form>
     <div id="appMessage"></div>
@@ -342,23 +305,12 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
   </div>
 </section>
 
-<!-- المشاريع -->
 <section id="projectsView" class="view hidden">
-  <div class="card">
-    <h2>مشاريعي</h2>
-    <div id="allProjects"></div>
-    <button class="btn primary" type="button" onclick="showHome()">العودة إلى الرئيسية</button>
-  </div>
+  <div class="card"><h2>مشاريعي</h2><div id="allProjects"></div><button class="btn primary" type="button" onclick="showHome()">العودة إلى الرئيسية</button></div>
 </section>
 
-<!-- الحساب -->
 <section id="accountView" class="view hidden">
-  <div class="card">
-    <h2>حسابي</h2>
-    <div id="accountInfo" class="notice"></div>
-    <button class="btn secondary" type="button" onclick="showHome()">العودة إلى الرئيسية</button>
-    <button class="btn danger" type="button" onclick="logout()">تسجيل الخروج</button>
-  </div>
+  <div class="card"><h2>حسابي</h2><div id="accountInfo" class="notice"></div><button class="btn secondary" type="button" onclick="showHome()">العودة إلى الرئيسية</button><button class="btn danger" type="button" onclick="logout()">تسجيل الخروج</button></div>
 </section>
 
 </main>
@@ -372,7 +324,7 @@ let generatedOtp = "";
 let pendingEmail = "";
 
 function $(id){return document.getElementById(id)}
-function escapeHTML(s){return String(s ?? "").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function escapeHTML(s){return String(s ?? "").replace(/[&<>\"'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function message(id,text,type="info"){
   const el = $(id);
   if (el) el.innerHTML='<div class="message '+type+'">'+escapeHTML(text)+'</div>';
@@ -404,7 +356,7 @@ function showRegister(){showView("authView");$("loginPanel").classList.add("hidd
 function showForgot(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.remove("hidden");}
 function backToEmail(){$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");}
 
-// طلب رمز التحقق وحقنه مباشرة في IndexedDB الخاصة بـ Eisen Mail
+// === طلب رمز التحقق - نسخة عملية متوافقة مع Eisen Mail والـ WebView ===
 const reqForm = $("requestCodeForm");
 if (reqForm) {
   reqForm.addEventListener("submit", async e => {
@@ -416,60 +368,116 @@ if (reqForm) {
     }
     generatedOtp = Math.floor(100000 + Math.random()*900000).toString();
     
+    // 1- حفظ الرمز بشكل دائم حسب البريد (هذا هو التحقق الديناميكي مش جامد)
     try {
-      const dbReq = indexedDB.open("EisenMailDB", 1);
-      dbReq.onsuccess = function(event) {
+      const allCodes = JSON.parse(localStorage.getItem("outhub_codes")||"{}");
+      allCodes[pendingEmail] = {code: generatedOtp, exp: Date.now()+10*60*1000};
+      localStorage.setItem("outhub_codes", JSON.stringify(allCodes));
+    } catch(err){}
+
+    // 2- حقن مباشر في IndexedDB تاع Eisen Mail - مع onupgradeneeded لمنع خطأ stores
+    try {
+      const dbReq = indexedDB.open("EisenMailDB", 2);
+      dbReq.onupgradeneeded = function(event) {
         const db = event.target.result;
-        if (db.objectStoreNames.contains("messages")) {
-          const tx = db.transaction("messages", "readwrite");
-          const store = tx.objectStore("messages");
-          store.add({
-            from: "no-reply@outhub.system",
-            to: pendingEmail,
-            subject: "رمز التحقق - OutHub",
-            body: "مرحبا،\n\nرمز التحقق الخاص بك في OutHub هو:\n\n" + generatedOtp + "\n\nصالح لمدة 10 دقائق.",
-            date: new Date().toISOString()
-          });
+        if(!db.objectStoreNames.contains("messages")){
+          db.createObjectStore("messages", {keyPath:"id", autoIncrement:true});
         }
+        if(!db.objectStoreNames.contains("users")){
+          db.createObjectStore("users", {keyPath:"email"});
+        }
+        if(!db.objectStoreNames.contains("accounts")){
+          db.createObjectStore("accounts", {keyPath:"email"});
+        }
+      };
+      dbReq.onsuccess = function(event) {
+        try {
+          const db = event.target.result;
+          if (db.objectStoreNames.contains("messages")) {
+            const tx = db.transaction("messages", "readwrite");
+            const store = tx.objectStore("messages");
+            store.add({
+              from: "no-reply@outhub.system",
+              to: pendingEmail,
+              subject: "رمز التحقق - OutHub",
+              body: "مرحبا،\n\nرمز التحقق الخاص بك في OutHub هو:\n\n" + generatedOtp + "\n\nصالح لمدة 10 دقائق.",
+              date: new Date().toISOString()
+            });
+          }
+        } catch(e2){}
       };
     } catch(err) {}
 
+    // 3- إرسال لـ Eisen Mail عبر localStorage (يعمل حتى في WebView بنفس الدومين)
     const payload = {to: pendingEmail, code: generatedOtp, at: Date.now()};
     localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
 
+    // 4- توجيه متوافق مع WebView: لا تستخدم _blank داخل التطبيق
     try { 
-      window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank"); 
+      // إذا كنت داخل WebView سيبقى داخل التطبيق
+      if (window.location.href.includes("mohamedmadoui5195.github.io")) {
+        // للتجربة في المتصفح افتح تبويب جديد، في التطبيق ابقى بنفس الصفحة
+        const isWebView = /wv|WebView|FBAN|FBAV/.test(navigator.userAgent);
+        if (isWebView) {
+          // لا تفتح، فقط اعلم المستخدم
+        } else {
+          window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank");
+        }
+      } else {
+        window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank");
+      }
     } catch(e){}
 
     $("emailStep").classList.add("hidden");
     $("verifyStep").classList.remove("hidden");
-    message("registerMessage","تم إرسال رمز التحقق إلى بريدك في Eisen Mail. يرجى تفقد صندوق الوارد هناك.","success");
+    message("registerMessage","تم إرسال رمز التحقق ("+generatedOtp+") إلى بريدك في Eisen Mail. يرجى تفقد صندوق الوارد هناك.","success");
   });
 }
 
-// التحقق وإنشاء الحساب في Firebase
+// التحقق وإنشاء الحساب - يطابق البريد مع الرمز المدخل
 const verifyForm = $("verifyForm");
 if (verifyForm) {
   verifyForm.addEventListener("submit", async e => {
     e.preventDefault();
-    const code = $("verifyCode").value.trim();
+    const codeInput = $("verifyCode").value.trim();
     const password = $("registerPassword").value;
     
-    if(code !== generatedOtp){
-      message("registerMessage","رمز التحقق غير صحيح.","error");
+    // التحقق الديناميكي: هل الرمز يطابق هذا البريد؟
+    let saved = null;
+    try {
+      const allCodes = JSON.parse(localStorage.getItem("outhub_codes")||"{}");
+      saved = allCodes[pendingEmail];
+    } catch(e){}
+    
+    // إذا موجود في الذاكرة أو في التخزين
+    const expected = saved ? saved.code : generatedOtp;
+    
+    if(!expected || codeInput !== expected){
+      message("registerMessage","❌ هذا خاطئ - رمز التحقق غير صحيح لهذا البريد.","error");
+      return;
+    }
+    
+    if(saved && Date.now() > saved.exp){
+      message("registerMessage","❌ انتهت صلاحية الرمز.","error");
       return;
     }
     
     try {
       await window.createUserWithEmailAndPassword(window.auth, pendingEmail, password);
+      // امسح الرمز بعد الاستخدام
+      try {
+        const allCodes = JSON.parse(localStorage.getItem("outhub_codes")||"{}");
+        delete allCodes[pendingEmail];
+        localStorage.setItem("outhub_codes", JSON.stringify(allCodes));
+      } catch(e){}
       showHome();
+      message("loginMessage","✅ صحيح نعم - تم إنشاء الحساب بنجاح","success");
     } catch(error) {
       message("registerMessage","خطأ في إنشاء الحساب: " + error.message, "error");
     }
   });
 }
 
-// تسجيل الدخول العادي
 const loginForm = $("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async e => {
@@ -485,36 +493,33 @@ if (loginForm) {
   });
 }
 
-// طلب الاستعادة
 const forgotForm = $("forgotForm");
 if (forgotForm) {
   forgotForm.addEventListener("submit", async e => {
     e.preventDefault();
-    const email = $("forgotEmail").value.trim();
     message("forgotMessage","إذا كان الحساب موجودًا، فستصل تعليمات الاستعادة إلى بريدك في Eisen Mail.", "success");
   });
 }
 
-function logout(){
-  window.signOut(window.auth).then(() => { showLogin(); });
-}
+function logout(){ window.signOut(window.auth).then(() => { showLogin(); }); }
 
-// دوال التنقل وإدارة المشاريع
 function showHome(){ showView("homeView"); renderRecent(); }
-function showAccount(){ 
-  $("accountInfo").textContent = "البريد المستخدم: " + emailNow(); 
-  showView("accountView"); 
-}
+function showAccount(){ $("accountInfo").textContent = "البريد المستخدم: " + emailNow(); showView("accountView"); }
 function showWebsite(){ clearMessage("websiteMessage"); showView("websiteView"); }
 function showApp(){ clearMessage("appMessage"); showView("appView"); }
 function showProjects(){ $("allProjects").innerHTML = projectList(); showView("projectsView"); }
 
 function allStored(){try{const a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return []}}
 function myProjects(){return allStored().filter(p => p.owner === emailNow());}
-function saveProject(p){const all=allStored();all.push({...p, owner: emailNow(), date: new Date().toISOString()});localStorage.setItem(KEY,JSON.stringify(all);JSON.stringify(all));}
-function markup(p){return <div class="project-item"><strong>${escapeHTML(p.name)}</strong><p>النوع: ${escapeHTML(p.type)}</p><p>${escapeHTML(p.idea)}</p><p>${escapeHTML(new Date(p.date).toLocaleDateString("ar"))}</p></div>;}
+function saveProject(p){
+  const all=allStored();
+  all.push({...p, owner: emailNow(), date: new Date().toISOString()});
+  localStorage.setItem(KEY, JSON.stringify(all));
+}
+function markup(p){return `<div class="project-item"><strong>${escapeHTML(p.name)}</strong><p>النوع: ${escapeHTML(p.type)}</p><p>${escapeHTML(p.idea)}</p><p>${escapeHTML(new Date(p.date).toLocaleDateString("ar"))}</p></div>`;}
 function projectList(){const list=myProjects().reverse();return list.length?list.map(markup).join(""):'<div class="empty">لا توجد مشاريع محفوظة.</div>';}
 function renderRecent(){const list=myProjects().slice(-3).reverse();$("recentProjects").innerHTML=list.length?list.map(markup).join(""):'<div class="card empty">لم تحفظ أي مشروع بعد.</div>';}
+
 const websiteForm = $("websiteForm");
 if (websiteForm) {
 websiteForm.addEventListener("submit", e => {
@@ -522,8 +527,8 @@ e.preventDefault();
 const name = $("websiteName").value.trim();
 const idea = $("websiteIdea").value.trim();
 const repo = $("repoName").value.trim();
-const visibility = ("visibility").value;
-if(!/^[A-Za-z0-9._-]+/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
+const visibility = $("visibility").value;
+if(!/^[A-Za-z0-9._-]+$/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
 saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
 window.open("https://github.com/new?name=" + encodeURIComponent(repo), "_blank", "noopener");
 message("websiteMessage","حُفظ المشروع محليًا وتم توجيهك إلى GitHub.","success");
