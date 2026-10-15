@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#050b18">
 <title>Outhub</title>
 
-<!-- Firebase SDKs - محفوظ كما هو -->
+<!-- Firebase SDKs -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
   import { 
@@ -138,11 +138,32 @@ input::placeholder{color:#71849f}
 }
 .project-card p{font-size:14px;color:var(--muted);flex:1}
 .section-title{margin:27px 0 15px}
-.project-item{padding:15px;border:1px solid var(--border);border-radius:12px;margin-top:10px;background:#091425;overflow-wrap:anywhere}
+.project-item{
+  padding:15px;border:1px solid var(--border);border-radius:12px;margin-top:10px;
+  background:#091425;overflow-wrap:anywhere;cursor:pointer;transition:border-color .15s,background .15s;
+}
+.project-item:hover{border-color:var(--blue);background:#0d1a2e}
 .project-item p{font-size:13px;color:var(--muted)}
 .empty{text-align:center;color:var(--muted);padding:25px}
 footer{text-align:center;color:#71849f;border-top:1px solid var(--border);padding:22px;font-size:12px}
-@media(max-width:480px){.grid{grid-template-columns:1fr}.card{padding:17px}}
+.code-space-wrap{
+  margin:18px 0;border:1px solid var(--border);border-radius:14px;overflow:hidden;
+  background:#050e1d;min-height:420px;position:relative;
+}
+.code-space-wrap iframe{width:100%;height:520px;border:0;display:block;background:#0d1117}
+.code-toolbar{
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 14px;
+  background:#0a1628;border-bottom:1px solid var(--border);
+}
+.code-toolbar input{flex:1;min-width:140px;padding:10px 12px;margin:0}
+.code-toolbar .btn{width:auto;margin:0;padding:10px 14px}
+.project-meta{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 18px;font-size:13px;color:var(--muted)}
+.project-meta span{background:#152c4d;padding:6px 12px;border-radius:8px;border:1px solid #29486f}
+@media(max-width:480px){
+  .grid{grid-template-columns:1fr}
+  .card{padding:17px}
+  .code-space-wrap iframe{height:380px}
+}
 </style>
 </head>
 <body>
@@ -306,7 +327,41 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
 </section>
 
 <section id="projectsView" class="view hidden">
-  <div class="card"><h2>مشاريعي</h2><div id="allProjects"></div><button class="btn primary" type="button" onclick="showHome()">العودة إلى الرئيسية</button></div>
+  <div class="card">
+    <h2>مشاريعي</h2>
+    <div id="allProjects"></div>
+    <button class="btn primary" type="button" onclick="showHome()">العودة إلى الرئيسية</button>
+  </div>
+</section>
+
+<!-- واجهة تفاصيل المشروع -->
+<section id="projectView" class="view hidden">
+  <div class="card">
+    <h2 id="projectTitle">عنوان المشروع</h2>
+    <p id="projectDesc" class="muted" style="margin-bottom:8px"></p>
+    <div class="project-meta" id="projectMeta"></div>
+
+    <div id="embedSection">
+      <h3 id="embedTitle">مساحة الكود</h3>
+      <p id="embedHint" class="muted small" style="margin-bottom:10px"></p>
+
+      <div id="githubToolbar" class="code-toolbar hidden">
+        <input id="githubUserInput" type="text" placeholder="اسم مستخدم GitHub (مثال: username)" autocomplete="username">
+        <button class="btn secondary" type="button" onclick="loadGitHubView()">تحميل مساحة الكود</button>
+      </div>
+
+      <div class="code-space-wrap">
+        <iframe id="embedFrame" title="مساحة داخل الصفحة" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-downloads allow-top-navigation-by-user-activation" src="about:blank"></iframe>
+      </div>
+      <div id="embedMessage"></div>
+
+      <button id="publishBtn" class="btn primary hidden" type="button" onclick="publishToGitHub()">نشر الموقع — فتح إعدادات المشروع في GitHub</button>
+      <p id="publishHint" class="muted small hidden" style="margin-top:8px">يفتح صفحة إعدادات المستودع (Pages) لتفعيل GitHub Pages ونشر الموقع.</p>
+    </div>
+
+    <button class="btn secondary" type="button" onclick="showProjects()" style="margin-top:16px">العودة إلى مشاريعي</button>
+    <button class="btn secondary" type="button" onclick="showHome()">العودة إلى الرئيسية</button>
+  </div>
 </section>
 
 <section id="accountView" class="view hidden">
@@ -320,8 +375,10 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
 <script>
 "use strict";
 const KEY = "outhub_projects";
+const GITHUB_USER_KEY = "outhub_github_user";
 let generatedOtp = "";
 let pendingEmail = "";
+let currentProject = null;
 
 function $(id){return document.getElementById(id)}
 function escapeHTML(s){return String(s ?? "").replace(/[&<>\"'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -356,7 +413,6 @@ function showRegister(){showView("authView");$("loginPanel").classList.add("hidd
 function showForgot(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.remove("hidden");}
 function backToEmail(){$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");}
 
-// === طلب رمز التحقق - نسخة عملية متوافقة مع Eisen Mail والـ WebView ===
 const reqForm = $("requestCodeForm");
 if (reqForm) {
   reqForm.addEventListener("submit", async e => {
@@ -368,14 +424,12 @@ if (reqForm) {
     }
     generatedOtp = Math.floor(100000 + Math.random()*900000).toString();
     
-    // 1- حفظ الرمز بشكل دائم حسب البريد (هذا هو التحقق الديناميكي مش جامد)
     try {
       const allCodes = JSON.parse(localStorage.getItem("outhub_codes")||"{}");
       allCodes[pendingEmail] = {code: generatedOtp, exp: Date.now()+10*60*1000};
       localStorage.setItem("outhub_codes", JSON.stringify(allCodes));
     } catch(err){}
 
-    // 2- حقن مباشر في IndexedDB تاع Eisen Mail - مع onupgradeneeded لمنع خطأ stores
     try {
       const dbReq = indexedDB.open("EisenMailDB", 2);
       dbReq.onupgradeneeded = function(event) {
@@ -408,19 +462,13 @@ if (reqForm) {
       };
     } catch(err) {}
 
-    // 3- إرسال لـ Eisen Mail عبر localStorage (يعمل حتى في WebView بنفس الدومين)
     const payload = {to: pendingEmail, code: generatedOtp, at: Date.now()};
     localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
 
-    // 4- توجيه متوافق مع WebView: لا تستخدم _blank داخل التطبيق
     try { 
-      // إذا كنت داخل WebView سيبقى داخل التطبيق
       if (window.location.href.includes("mohamedmadoui5195.github.io")) {
-        // للتجربة في المتصفح افتح تبويب جديد، في التطبيق ابقى بنفس الصفحة
         const isWebView = /wv|WebView|FBAN|FBAV/.test(navigator.userAgent);
-        if (isWebView) {
-          // لا تفتح، فقط اعلم المستخدم
-        } else {
+        if (!isWebView) {
           window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank");
         }
       } else {
@@ -434,7 +482,6 @@ if (reqForm) {
   });
 }
 
-// التحقق وإنشاء الحساب - يطابق البريد مع الرمز المدخل
 const verifyForm = $("verifyForm");
 if (verifyForm) {
   verifyForm.addEventListener("submit", async e => {
@@ -442,14 +489,12 @@ if (verifyForm) {
     const codeInput = $("verifyCode").value.trim();
     const password = $("registerPassword").value;
     
-    // التحقق الديناميكي: هل الرمز يطابق هذا البريد؟
     let saved = null;
     try {
       const allCodes = JSON.parse(localStorage.getItem("outhub_codes")||"{}");
       saved = allCodes[pendingEmail];
     } catch(e){}
     
-    // إذا موجود في الذاكرة أو في التخزين
     const expected = saved ? saved.code : generatedOtp;
     
     if(!expected || codeInput !== expected){
@@ -464,7 +509,6 @@ if (verifyForm) {
     
     try {
       await window.createUserWithEmailAndPassword(window.auth, pendingEmail, password);
-      // امسح الرمز بعد الاستخدام
       try {
         const allCodes = JSON.parse(localStorage.getItem("outhub_codes")||"{}");
         delete allCodes[pendingEmail];
@@ -509,39 +553,161 @@ function showWebsite(){ clearMessage("websiteMessage"); showView("websiteView");
 function showApp(){ clearMessage("appMessage"); showView("appView"); }
 function showProjects(){ $("allProjects").innerHTML = projectList(); showView("projectsView"); }
 
-function allStored(){try{const a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return []}}
+function allStored(){
+  try{
+    const a = JSON.parse(localStorage.getItem(KEY)||"[]");
+    if(!Array.isArray(a)) return [];
+    let changed = false;
+    a.forEach(p => {
+      if(!p.id){
+        p.id = "p_" + Date.now() + "_" + Math.random().toString(36).slice(2,9);
+        changed = true;
+      }
+    });
+    if(changed) localStorage.setItem(KEY, JSON.stringify(a));
+    return a;
+  }catch(e){return []}
+}
 function myProjects(){return allStored().filter(p => p.owner === emailNow());}
 function saveProject(p){
-  const all=allStored();
-  all.push({...p, owner: emailNow(), date: new Date().toISOString()});
+  const all = allStored();
+  all.push({
+    ...p,
+    id: "p_" + Date.now() + "_" + Math.random().toString(36).slice(2,9),
+    owner: emailNow(),
+    date: new Date().toISOString()
+  });
   localStorage.setItem(KEY, JSON.stringify(all));
 }
-function markup(p){return `<div class="project-item"><strong>${escapeHTML(p.name)}</strong><p>النوع: ${escapeHTML(p.type)}</p><p>${escapeHTML(p.idea)}</p><p>${escapeHTML(new Date(p.date).toLocaleDateString("ar"))}</p></div>`;}
-function projectList(){const list=myProjects().reverse();return list.length?list.map(markup).join(""):'<div class="empty">لا توجد مشاريع محفوظة.</div>';}
-function renderRecent(){const list=myProjects().slice(-3).reverse();$("recentProjects").innerHTML=list.length?list.map(markup).join(""):'<div class="card empty">لم تحفظ أي مشروع بعد.</div>';}
+function markup(p){
+  return `<div class="project-item" onclick="showProject('${escapeHTML(p.id)}')" role="button" tabindex="0">
+    <strong>${escapeHTML(p.name)}</strong>
+    <p>النوع: ${escapeHTML(p.type)}</p>
+    <p>${escapeHTML(p.idea)}</p>
+    <p>${escapeHTML(new Date(p.date).toLocaleDateString("ar"))}</p>
+  </div>`;
+}
+function projectList(){
+  const list = myProjects().reverse();
+  return list.length ? list.map(markup).join("") : '<div class="empty">لا توجد مشاريع محفوظة.</div>';
+}
+function renderRecent(){
+  const list = myProjects().slice(-3).reverse();
+  $("recentProjects").innerHTML = list.length ? list.map(markup).join("") : '<div class="card empty">لم تحفظ أي مشروع بعد.</div>';
+}
+
+function showProject(id){
+  const proj = myProjects().find(p => p.id === id);
+  if(!proj){
+    showProjects();
+    return;
+  }
+  currentProject = proj;
+  $("projectTitle").textContent = proj.name || "بدون عنوان";
+  $("projectDesc").textContent = proj.idea || "لا يوجد وصف";
+
+  const meta = [];
+  meta.push(`<span>النوع: ${escapeHTML(proj.type)}</span>`);
+  if(proj.repo) meta.push(`<span>المستودع: ${escapeHTML(proj.repo)}</span>`);
+  if(proj.visibility) meta.push(`<span>الخصوصية: ${proj.visibility === "public" ? "علني" : "خاص"}</span>`);
+  meta.push(`<span>التاريخ: ${escapeHTML(new Date(proj.date).toLocaleDateString("ar"))}</span>`);
+  $("projectMeta").innerHTML = meta.join("");
+
+  clearMessage("embedMessage");
+  const frame = $("embedFrame");
+  frame.src = "about:blank";
+
+  const isWebsite = proj.type === "موقع إلكتروني";
+  const isApp = proj.type === "تطبيق";
+
+  if(isWebsite){
+    $("embedTitle").textContent = "مساحة الكود";
+    $("embedHint").textContent = "أدخل اسم مستخدم GitHub لعرض المستودع داخل الصفحة (webview).";
+    $("githubToolbar").classList.remove("hidden");
+    $("publishBtn").classList.remove("hidden");
+    $("publishHint").classList.remove("hidden");
+
+    const savedUser = localStorage.getItem(GITHUB_USER_KEY) || "";
+    $("githubUserInput").value = savedUser;
+    if(savedUser && proj.repo){
+      setTimeout(() => loadGitHubView(), 150);
+    }
+  } else if(isApp){
+    $("embedTitle").textContent = "داشبورد AppsGeyser";
+    $("embedHint").textContent = "لوحة إنشاء التطبيقات معروضة داخل الصفحة.";
+    $("githubToolbar").classList.add("hidden");
+    $("publishBtn").classList.add("hidden");
+    $("publishHint").classList.add("hidden");
+    frame.src = "https://appsgeyser.com/create-app/";
+    message("embedMessage","تم فتح داشبورد AppsGeyser داخل الصفحة.","success");
+  } else {
+    $("embedTitle").textContent = "مساحة المشروع";
+    $("embedHint").textContent = "";
+    $("githubToolbar").classList.add("hidden");
+    $("publishBtn").classList.add("hidden");
+    $("publishHint").classList.add("hidden");
+  }
+
+  showView("projectView");
+}
+
+function loadGitHubView(){
+  if(!currentProject || !currentProject.repo){
+    message("embedMessage","لا يوجد مستودع مرتبط بهذا المشروع.","error");
+    return;
+  }
+  const user = ($("githubUserInput").value || "").trim().replace(/^@/,"");
+  if(!user || !/^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/.test(user)){
+    message("embedMessage","أدخل اسم مستخدم GitHub صحيحًا.","error");
+    return;
+  }
+  localStorage.setItem(GITHUB_USER_KEY, user);
+  const repo = currentProject.repo;
+  // github1s يعرض الكود بشكل ويب فيو قابل للتضمين داخل الصفحة
+  const url = "https://github1s.com/" + encodeURIComponent(user) + "/" + encodeURIComponent(repo);
+  $("embedFrame").src = url;
+  message("embedMessage","تم تحميل مساحة الكود من GitHub داخل الصفحة.","success");
+}
+
+function publishToGitHub(){
+  if(!currentProject || !currentProject.repo){
+    message("embedMessage","لا يوجد مستودع مرتبط بهذا المشروع.","error");
+    return;
+  }
+  const user = ($("githubUserInput").value || "").trim().replace(/^@/,"");
+  if(!user){
+    message("embedMessage","أدخل اسم مستخدم GitHub أولاً ثم اضغط نشر الموقع.","error");
+    return;
+  }
+  localStorage.setItem(GITHUB_USER_KEY, user);
+  const settingsUrl = "https://github.com/" + encodeURIComponent(user) + "/" + encodeURIComponent(currentProject.repo) + "/settings/pages";
+  window.open(settingsUrl, "_blank", "noopener");
+  message("embedMessage","تم فتح إعدادات المشروع في GitHub (صفحة Pages). فعّل GitHub Pages من هناك لنشر الموقع.","success");
+}
 
 const websiteForm = $("websiteForm");
 if (websiteForm) {
-websiteForm.addEventListener("submit", e => {
-e.preventDefault();
-const name = $("websiteName").value.trim();
-const idea = $("websiteIdea").value.trim();
-const repo = $("repoName").value.trim();
-const visibility = $("visibility").value;
-if(!/^[A-Za-z0-9._-]+$/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
-saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
-window.open("https://github.com/new?name=" + encodeURIComponent(repo), "_blank", "noopener");
-message("websiteMessage","حُفظ المشروع محليًا وتم توجيهك إلى GitHub.","success");
-});
+  websiteForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("websiteName").value.trim();
+    const idea = $("websiteIdea").value.trim();
+    const repo = $("repoName").value.trim();
+    const visibility = $("visibility").value;
+    if(!/^[A-Za-z0-9._-]+$/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
+    saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
+    window.open("https://github.com/new?name=" + encodeURIComponent(repo), "_blank", "noopener");
+    message("websiteMessage","حُفظ المشروع محليًا وتم توجيهك إلى GitHub.","success");
+  });
 }
+
 const appForm = $("appForm");
 if (appForm) {
-appForm.addEventListener("submit", e => {
-e.preventDefault();
-saveProject({name: $("appName").value.trim(), idea: $("appIdea").value.trim(), type: "تطبيق"});
-window.open("https://appsgeyser.com/create-app/","_blank","noopener");
-message("appMessage","حُفظت معلومات التطبيق وتم فتح أداة الإنشاء.","success");
-});
+  appForm.addEventListener("submit", e => {
+    e.preventDefault();
+    saveProject({name: $("appName").value.trim(), idea: $("appIdea").value.trim(), type: "تطبيق"});
+    window.open("https://appsgeyser.com/create-app/","_blank","noopener");
+    message("appMessage","حُفظت معلومات التطبيق وتم فتح أداة الإنشاء.","success");
+  });
 }
 </script>
 </body>
