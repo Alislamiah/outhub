@@ -272,7 +272,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
   <h3>تعلم البرمجة مع مداد</h3>
   <p>هل تريد تعلم البرمجة؟ تعلم تنظيم وكتابة أكوادك باحترافية مع مداد.</p>
   <button class="btn primary" onclick="openMedad()">
-    <img src="icon.png" alt="Alislamiah"
+    <img src="icon.jpg" alt="Alislamiah"
          style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-left:8px">
     الانتقال إلى مداد
   </button>
