@@ -1,203 +1,190 @@
 
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#050b18">
-<title>مداد | Outhub</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101820">
+<title>Alislamiah AI</title>
 <link rel="icon" href="icon.png">
+
 <style>
-:root{
-  --bg:#050b18;
-  --panel:#0b1629;
-  --border:#1b2c45;
-  --cyan:#31d9e8;
-  --text:#f1f6ff;
-  --muted:#9aabc2;
-}
 *{box-sizing:border-box}
-body{
-  margin:0;background:var(--bg);color:var(--text);
-  font-family:Arial,sans-serif;min-height:100vh;
+html,body{
+  margin:0;width:100%;height:100%;overflow:hidden;
+  font-family:Arial,sans-serif;background:#fff;color:#fff
 }
 .topbar{
-  height:60px;position:sticky;top:0;z-index:10;
-  background:#081326;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:12px;padding:0 16px;
+  height:48px;display:flex;align-items:center;
+  direction:ltr;padding:0 8px 0 14px;gap:12px;
+  background:#101820;border-bottom:1px solid #293746;
+  position:relative;z-index:20
 }
-.brand{font-weight:bold;white-space:nowrap}
-.brand img{width:27px;height:27px;object-fit:contain;vertical-align:middle}
 .status{
-  font-size:12px;color:var(--cyan);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  flex:1;min-width:0;color:#d6e0eb;
+  font-size:13px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis
 }
-.menu-btn{
-  margin-right:auto;background:transparent;color:white;
-  border:1px solid var(--border);border-radius:9px;
-  padding:8px 12px;font-size:18px;cursor:pointer;
+.menu-button{
+  width:38px;height:38px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  border:0;border-radius:50%;background:transparent;
+  color:white;font-size:27px;cursor:pointer
 }
-.layout{display:flex;min-height:calc(100vh - 60px)}
-.sidebar{
-  width:250px;flex-shrink:0;background:var(--panel);
-  border-left:1px solid var(--border);padding:18px 12px;
-}
-.sidebar h4{color:var(--muted);font-size:12px;margin:5px 10px 15px}
-.side-btn{
-  width:100%;display:flex;align-items:center;gap:12px;
-  background:transparent;color:var(--text);border:0;
-  border-radius:10px;padding:13px 12px;margin-bottom:5px;
-  text-align:right;font-size:14px;cursor:pointer;
-}
-.side-btn:hover{background:#142640;color:var(--cyan)}
-.side-btn.return{margin-top:20px;border:1px solid var(--border)}
-.main{flex:1;min-width:0;padding:18px}
-.page-heading{margin:0 0 8px;font-size:20px}
-.description{color:var(--muted);font-size:13px;margin:0 0 18px}
+.menu-button:hover{background:#293746}
 .viewer{
-  width:100%;height:calc(100vh - 145px);min-height:420px;
-  background:#fff;border:1px solid var(--border);
-  border-radius:14px;overflow:hidden;
+  position:absolute;top:48px;left:0;right:0;bottom:0;
+  background:#fff
 }
-.viewer iframe{width:100%;height:100%;border:0;display:block}
-.mobile-backdrop{display:none}
-@media(max-width:700px){
-  .sidebar{
-    position:fixed;z-index:30;top:60px;bottom:0;right:0;
-    width:265px;transform:translateX(105%);
-    transition:transform .2s ease;
-  }
-  body.menu-open .sidebar{transform:translateX(0)}
-  .mobile-backdrop{
-    position:fixed;inset:60px 0 0;background:#0009;
-    z-index:20;
-  }
-  body.menu-open .mobile-backdrop{display:block}
-  .main{padding:13px}
-  .viewer{height:calc(100dvh - 180px);min-height:350px}
-  .status{font-size:10px}
+.viewer iframe{
+  width:100%;height:100%;border:0;display:block
 }
+.backdrop{
+  position:fixed;inset:48px 0 0;
+  background:#0007;z-index:29;display:none
+}
+.backdrop.open{display:block}
+.menu{
+  display:none;position:fixed;top:48px;right:8px;
+  width:min(290px,calc(100vw - 20px));
+  padding:7px;background:#18232f;color:white;
+  border:1px solid #344352;border-radius:12px;
+  box-shadow:0 10px 35px #0008;z-index:30
+}
+.menu.open{display:block}
+.menu button{
+  width:100%;min-height:46px;display:flex;
+  align-items:center;gap:12px;padding:10px 12px;
+  border:0;border-radius:8px;background:transparent;
+  color:#f5f7fa;font-size:14px;text-align:right;
+  cursor:pointer
+}
+.menu button:hover{background:#293746}
+.symbol{width:22px;text-align:center;font-size:18px}
+.menu hr{border:0;border-top:1px solid #344352;margin:6px 4px}
 </style>
 </head>
-<body>
 
+<body>
 <header class="topbar">
-  <div class="brand">
-    <img src="icon.png" alt="Alislamiah">
-    Outhub
-  </div>
-  <div class="status">● Running in Alislamiah AI browser</div>
-  <button class="menu-btn" onclick="toggleMenu()" aria-label="القائمة">☰</button>
+  <div class="status">Running in Alislamiah AI</div>
+  <button class="menu-button" id="menuButton"
+          aria-label="More options" aria-expanded="false">⋮</button>
 </header>
 
-<div class="mobile-backdrop" onclick="toggleMenu()"></div>
+<div class="backdrop" id="backdrop"></div>
 
-<div class="layout">
-  <aside class="sidebar">
-    <h4>خيارات الصفحة</h4>
+<nav class="menu" id="menu">
+  <button id="shareButton">
+    <span class="symbol">↗</span>
+    <span>Share</span>
+  </button>
 
-    <button class="side-btn" onclick="sharePage()">
-      <span>↗</span> Share
-    </button>
+  <button id="copyButton">
+    <span class="symbol">🔗</span>
+    <span>Copy link</span>
+  </button>
 
-    <button class="side-btn" onclick="copyLink()">
-      <span>🔗</span> Copy link
-    </button>
+  <button id="browserButton">
+    <span class="symbol">🌐</span>
+    <span>Open in Alislamiah AI browser</span>
+  </button>
 
-    <button class="side-btn" onclick="openInAlislamiah()">
-      <span>🌐</span> Open in Alislamiah AI browser
-    </button>
+  <hr>
 
-    <button class="side-btn return" onclick="returnToOuthub()">
-      <span>←</span> Return to Outhub
-    </button>
-  </aside>
+  <button id="returnButton">
+    <span class="symbol">←</span>
+    <span>Return to Outhub</span>
+  </button>
+</nav>
 
-  <main class="main">
-    <h2 class="page-heading">مداد — تعلم البرمجة</h2>
-    <p class="description">
-      تعلم تنظيم وكتابة الأكواد باحترافية.
-    </p>
-
-    <section class="viewer">
-      <iframe
-        src="https://nazim10-u.github.io/nazim/"
-        title="مداد - تعلم البرمجة"
-        allow="clipboard-read; clipboard-write"
-        loading="eager">
-      </iframe>
-    </section>
-  </main>
-</div>
+<main class="viewer">
+  <iframe
+    src="https://nazim10-u.github.io/nazim/"
+    title="Website"
+    allow="clipboard-read; clipboard-write">
+  </iframe>
+</main>
 
 <script>
-const MEDAD_URL = "https://nazim10-u.github.io/nazim/";
-const BROWSER_URL =
-  "https://mohamedmadoui5195.github.io/Alislamiah-AI/results.html";
+const MEDAD_URL="https://nazim10-u.github.io/nazim/";
+const BROWSER_URL=
+"https://mohamedmadoui5195.github.io/Alislamiah-AI/results.html";
 
-function toggleMenu(){
-  document.body.classList.toggle("menu-open");
+const menu=document.getElementById("menu");
+const menuButton=document.getElementById("menuButton");
+const backdrop=document.getElementById("backdrop");
+
+function openMenu(){
+  menu.classList.add("open");
+  backdrop.classList.add("open");
+  menuButton.setAttribute("aria-expanded","true");
 }
 
-function copyLink(){
-  const url = MEDAD_URL;
-
-  if(navigator.clipboard && window.isSecureContext){
-    navigator.clipboard.writeText(url)
-      .then(()=>alert("تم نسخ رابط مداد"))
-      .catch(()=>fallbackCopy(url));
-  }else{
-    fallbackCopy(url);
-  }
+function closeMenu(){
+  menu.classList.remove("open");
+  backdrop.classList.remove("open");
+  menuButton.setAttribute("aria-expanded","false");
 }
 
-function fallbackCopy(text){
-  const input = document.createElement("textarea");
-  input.value = text;
-  input.style.position = "fixed";
-  input.style.opacity = "0";
-  document.body.appendChild(input);
-  input.select();
+menuButton.addEventListener("click",()=>{
+  menu.classList.contains("open")?closeMenu():openMenu();
+});
+backdrop.addEventListener("click",closeMenu);
 
+async function copyLink(){
+  closeMenu();
   try{
-    const ok = document.execCommand("copy");
-    alert(ok ? "تم نسخ رابط مداد" : "تعذر النسخ. انسخ الرابط يدوياً: " + text);
+    await navigator.clipboard.writeText(MEDAD_URL);
+    alert("Link copied");
   }catch(e){
-    alert("انسخ الرابط: " + text);
+    const field=document.createElement("textarea");
+    field.value=MEDAD_URL;
+    field.style.position="fixed";
+    field.style.left="-9999px";
+    document.body.appendChild(field);
+    field.select();
+    let copied=false;
+    try{copied=document.execCommand("copy")}catch(e){}
+    field.remove();
+    alert(copied?"Link copied":MEDAD_URL);
   }
-
-  input.remove();
 }
 
 async function sharePage(){
-  const data = {
-    title:"مداد | تعلم البرمجة",
-    text:"تعلم تنظيم وكتابة الأكواد باحترافية مع مداد",
-    url:MEDAD_URL
-  };
-
+  closeMenu();
   if(navigator.share){
-    try{ await navigator.share(data); }
-    catch(e){}
+    try{
+      await navigator.share({
+        title:"Medad",
+        url:MEDAD_URL
+      });
+    }catch(e){}
   }else{
-    copyLink();
+    await copyLink();
   }
 }
 
-function openInAlislamiah(){
-  const url = BROWSER_URL + "?url=" + encodeURIComponent(MEDAD_URL);
-  window.location.href = url;
+function openInAlislamiahBrowser(){
+  closeMenu();
+  window.location.href=
+    BROWSER_URL+"?url="+encodeURIComponent(MEDAD_URL);
 }
 
 function returnToOuthub(){
-  if(document.referrer &&
-     new URL(document.referrer).origin === location.origin){
-    history.back();
-  }else{
-    window.location.href = "index.html";
-  }
+  closeMenu();
+  window.location.href="index.html";
 }
-</script>
 
+document.getElementById("copyButton")
+  .addEventListener("click",copyLink);
+document.getElementById("shareButton")
+  .addEventListener("click",sharePage);
+document.getElementById("browserButton")
+  .addEventListener("click",openInAlislamiahBrowser);
+document.getElementById("returnButton")
+  .addEventListener("click",returnToOuthub);
+</script>
 </body>
 </html>
