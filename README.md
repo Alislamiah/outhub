@@ -265,6 +265,26 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
   <div class="hero">
     <h1>مشاريعك تبدأ من <span class="cyan">Outhub</span></h1>
     <p>مساحة واحدة للانطلاق بمواقعك الإلكترونية وتطبيقاتك.</p>
+
+
+<article class="card project-card">
+  <div class="project-icon">💻</div>
+  <h3>تعلم البرمجة مع مداد</h3>
+  <p>هل تريد تعلم البرمجة؟ تعلم تنظيم وكتابة أكوادك باحترافية مع مداد.</p>
+  <button class="btn primary" onclick="openMedad()">
+    <img src="icon.png" alt="Alislamiah"
+         style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-left:8px">
+    الانتقال إلى مداد
+  </button>
+</article>
+
+<script>
+function openMedad(){
+  window.location.href = "medad.html";
+}
+</script>
+
+
     <button class="btn primary" style="width:auto" onclick="showWebsite()">+ ابدأ مشروعك</button>
   </div>
   <div class="grid">
