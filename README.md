@@ -304,7 +304,7 @@ function openMedad(){
       <div class="project-icon">✦</div>
       <h3>Gemalot</h3>
       <p>افتح الخدمة عبر موقعها.</p>
-      <a class="btn secondary" href="https://mohamedmadoui5195.github.io/Gemalot/" target="_blank" rel="noopener">فتح Gemalot</a>
+      <a class="btn secondary" href="https://Alislamiah.github.io/Gemalot/" target="_blank" rel="noopener">فتح Gemalot</a>
     </article>
     <article class="card project-card">
       <div class="project-icon">📂</div>
@@ -489,7 +489,7 @@ if (reqForm) {
       if (window.location.href.includes("mohamedmadoui5195.github.io")) {
         const isWebView = /wv|WebView|FBAN|FBAV/.test(navigator.userAgent);
         if (!isWebView) {
-          window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank");
+          window.open("https://Alislamiah.github.io/Eisen-mail/", "_blank");
         }
       } else {
         window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank");
