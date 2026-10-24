@@ -12,7 +12,7 @@
   import { 
     getAuth, 
     signInWithPopup, 
-    GoogleAuthProvider, 
+    GithubAuthProvider, 
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
     signOut, 
@@ -33,22 +33,22 @@
   const auth = getAuth(app);
   
   window.auth = auth;
-  window.GoogleAuthProvider = GoogleAuthProvider;
+  window.GithubAuthProvider = GithubAuthProvider;
   window.signInWithPopup = signInWithPopup;
   window.signInWithEmailAndPassword = signInWithEmailAndPassword;
   window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
   window.signOut = signOut;
   window.onAuthStateChanged = onAuthStateChanged;
 
-  window.loginWithGoogle = async function() {
+  window.loginWithGitHub = async function() {
     try {
-      const provider = new GoogleAuthProvider();
+      const provider = new GithubAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (error) {
       if (typeof window.message === "function") {
-        window.message("loginMessage", "فشل تسجيل الدخول بجوجل: " + error.message, "error");
+        window.message("loginMessage", "فشل تسجيل الدخول بـ GitHub: " + error.message, "error");
       } else {
-        alert("خطأ أثناء تسجيل الدخول بجوجل: " + error.message);
+        alert("خطأ أثناء تسجيل الدخول بـ GitHub: " + error.message);
       }
     }
   };
@@ -118,7 +118,7 @@ input::placeholder{color:#71849f}
 .primary{background:linear-gradient(110deg,#2864f0,#408eff);color:white}
 .secondary{background:#142641;color:white;border:1px solid #294263}
 .danger{background:#381a23;color:#ffabb3;border:1px solid #71313c}
-.google-btn{background:#ea4335;color:white;margin-bottom:10px}
+.github-btn{background:#24292e;color:white;margin-bottom:10px}
 .link{background:none;border:0;color:#75adff;text-decoration:underline;padding:5px}
 .form-links{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:17px}
 .notice,.message{padding:13px;border-radius:11px;font-size:13px;line-height:1.8;margin:14px 0;overflow-wrap:anywhere}
@@ -188,7 +188,7 @@ footer{text-align:center;color:#71849f;border-top:1px solid var(--border);paddin
 
   <div id="loginPanel" class="card">
     <h2>تسجيل الدخول</h2>
-    <button class="btn google-btn" type="button" onclick="loginWithGoogle()">تسجيل الدخول بواسطة Google</button>
+    <button class="btn github-btn" type="button" onclick="loginWithGitHub()">تسجيل الدخول بواسطة GitHub</button>
     <div style="text-align:center;color:var(--muted);font-size:12px;margin:10px 0;">أو بالبريد الإلكتروني</div>
     <form id="loginForm">
       <div class="field">
@@ -450,18 +450,27 @@ if (reqForm) {
       localStorage.setItem("outhub_codes", JSON.stringify(allCodes));
     } catch(err){}
 
+    // إرسال الرمز إلى Eisen Mail عبر localStorage (يعمل فقط إذا كان Outhub وEisen Mail على نفس النطاق)
+    const payload = {
+      to: pendingEmail,
+      code: generatedOtp,
+      purpose: "verify",
+      at: Date.now()
+    };
+    localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
+
+    // محاولة الكتابة مباشرة في IndexedDB (نفس المتصفح ونفس النطاق فقط)
     try {
-      const dbReq = indexedDB.open("EisenMailDB", 2);
+      const dbReq = indexedDB.open("EisenMailDB");
       dbReq.onupgradeneeded = function(event) {
         const db = event.target.result;
-        if(!db.objectStoreNames.contains("messages")){
-          db.createObjectStore("messages", {keyPath:"id", autoIncrement:true});
+        if (!db.objectStoreNames.contains("messages")) {
+          const store = db.createObjectStore("messages", { keyPath: "id", autoIncrement: true });
+          store.createIndex("from", "from", { unique: false });
+          store.createIndex("to", "to", { unique: false });
         }
-        if(!db.objectStoreNames.contains("users")){
-          db.createObjectStore("users", {keyPath:"email"});
-        }
-        if(!db.objectStoreNames.contains("accounts")){
-          db.createObjectStore("accounts", {keyPath:"email"});
+        if (!db.objectStoreNames.contains("users")) {
+          db.createObjectStore("users", { keyPath: "email" });
         }
       };
       dbReq.onsuccess = function(event) {
@@ -474,31 +483,25 @@ if (reqForm) {
               from: "no-reply@outhub.system",
               to: pendingEmail,
               subject: "رمز التحقق - OutHub",
-              body: "مرحبا،\n\nرمز التحقق الخاص بك في OutHub هو:\n\n" + generatedOtp + "\n\nصالح لمدة 10 دقائق.",
+              body: "مرحبا،\n\nرمز التحقق الخاص بك في OutHub هو:\n\n" + generatedOtp + "\n\nصالح لمدة 10 دقائق. لا تشاركه مع أحد.\n\n- OutHub",
               date: new Date().toISOString()
             });
           }
-        } catch(e2){}
+        } catch (e2) {}
       };
-    } catch(err) {}
+    } catch (err) {}
 
-    const payload = {to: pendingEmail, code: generatedOtp, at: Date.now()};
-    localStorage.setItem("outhub_send_code_request", JSON.stringify(payload));
-
-    try { 
-      if (window.location.href.includes("mohamedmadoui5195.github.io")) {
-        const isWebView = /wv|WebView|FBAN|FBAV/.test(navigator.userAgent);
-        if (!isWebView) {
-          window.open("https://Alislamiah.github.io/Eisen-mail/", "_blank");
-        }
-      } else {
-        window.open("https://mohamedmadoui5195.github.io/Eisen-mail/", "_blank");
+    // فتح Eisen Mail دائماً من Alislamiah
+    try {
+      const isWebView = /wv|WebView|FBAN|FBAV/.test(navigator.userAgent);
+      if (!isWebView) {
+        window.open("https://Alislamiah.github.io/Eisen-mail/", "_blank", "noopener");
       }
-    } catch(e){}
+    } catch (e) {}
 
     $("emailStep").classList.add("hidden");
     $("verifyStep").classList.remove("hidden");
-    message("registerMessage","تم إرسال رمز التحقق ("+generatedOtp+") إلى بريدك في Eisen Mail. يرجى تفقد صندوق الوارد هناك.","success");
+    message("registerMessage", "تم إرسال رمز التحقق إلى بريدك في Eisen Mail (Alislamiah). افتح صندوق الوارد هناك وأدخل الرمز هنا.", "success");
   });
 }
 
