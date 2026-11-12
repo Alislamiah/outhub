@@ -354,28 +354,78 @@ function openMedad(){
   </div>
 </section>
 
-<!-- واجهة تفاصيل المشروع -->
+<!-- واجهة تفاصيل المشروع — مساحة عمل الملفات مثل GitHub -->
 <section id="projectView" class="view hidden">
   <div class="card">
     <h2 id="projectTitle">عنوان المشروع</h2>
     <p id="projectDesc" class="muted" style="margin-bottom:8px"></p>
     <div class="project-meta" id="projectMeta"></div>
 
-    <div id="embedSection">
+    <!-- أزرار الإجراءات -->
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0">
+      <button class="btn primary" type="button" style="width:auto;margin:0" onclick="showCreateFilePanel()">＋ Create file</button>
+      <button class="btn secondary" type="button" style="width:auto;margin:0" onclick="showUploadPanel()">⬆ Upload file</button>
+      <button class="btn secondary" type="button" style="width:auto;margin:0" onclick="copyLiveUrl()">نسخ الرابط الحي</button>
+    </div>
+
+    <!-- لوحة إنشاء ملف -->
+    <div id="createFilePanel" class="hidden" style="margin:14px 0;padding:16px;border:1px solid var(--border);border-radius:12px;background:#091425">
+      <h3 style="margin-bottom:12px">Create file</h3>
+      <div class="field">
+        <label for="newFileName">اسم الملف (مثال: index.html أو style.css)</label>
+        <input id="newFileName" type="text" placeholder="index.html" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="newFileCode">الكود / المحتوى</label>
+        <textarea id="newFileCode" rows="10" style="width:100%;padding:14px;border:1px solid #2a3e5b;border-radius:11px;background:#050e1d;color:white;outline:none;font-family:monospace;resize:vertical" placeholder="ضع الكود هنا..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn primary" type="button" style="width:auto;margin:0" onclick="createFileInProject()">Create</button>
+        <button class="btn secondary" type="button" style="width:auto;margin:0" onclick="hideCreateFilePanel()">إلغاء</button>
+      </div>
+      <div id="createFileMessage"></div>
+    </div>
+
+    <!-- لوحة رفع ملف -->
+    <div id="uploadPanel" class="hidden" style="margin:14px 0;padding:16px;border:1px solid var(--border);border-radius:12px;background:#091425">
+      <h3 style="margin-bottom:12px">Upload file</h3>
+      <p class="muted small" style="margin-bottom:12px">Upload from:</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+        <button class="btn secondary" type="button" style="width:auto;margin:0" onclick="window.open('https://Alislamiah.github.io/Bingot/','_blank')">Bingot</button>
+        <button class="btn secondary" type="button" style="width:auto;margin:0" onclick="window.open('https://Alislamiah.github.io/MGA-Code-Editor/','_blank')">MGA Code Editor</button>
+        <button class="btn secondary" type="button" style="width:auto;margin:0" onclick="triggerDeviceUpload()">Default files / File manager / Galerie / Google photos / OneDrive</button>
+      </div>
+      <input type="file" id="deviceFileInput" class="hidden" multiple accept="*/*" onchange="handleDeviceFiles(event)">
+      <div class="notice small">يمكنك اختيار ملفات من جهازك (مدير الملفات، المعرض، Google Drive، OneDrive... عبر منتقي النظام).</div>
+      <button class="btn secondary" type="button" style="width:auto;margin-top:10px" onclick="hideUploadPanel()">إغلاق</button>
+      <div id="uploadMessage"></div>
+    </div>
+
+    <!-- قائمة الملفات -->
+    <h3 style="margin:18px 0 10px">ملفات المشروع</h3>
+    <div id="projectFilesList" style="margin-bottom:16px"></div>
+
+    <!-- محرر / عارض الكود -->
+    <div id="codeEditorSection" class="hidden">
+      <h3 id="currentFileTitle" style="margin-bottom:8px">الملف</h3>
+      <textarea id="codeEditor" rows="14" style="width:100%;padding:14px;border:1px solid #2a3e5b;border-radius:11px;background:#050e1d;color:#e6edf3;outline:none;font-family:monospace;font-size:13px;resize:vertical;direction:ltr;text-align:left"></textarea>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn primary" type="button" style="width:auto;margin:0" onclick="saveCurrentFile()">حفظ الملف</button>
+        <button class="btn secondary" type="button" style="width:auto;margin:0" onclick="refreshPreview()">تحديث المعاينة</button>
+        <button class="btn danger" type="button" style="width:auto;margin:0" onclick="deleteCurrentFile()">حذف الملف</button>
+      </div>
+      <div id="editorMessage"></div>
+    </div>
+
+    <!-- معاينة حية -->
+    <div id="embedSection" style="margin-top:20px">
       <h3 id="embedTitle">معاينة الموقع الحي</h3>
       <p id="embedHint" class="muted small" style="margin-bottom:10px"></p>
-
-      <div id="githubToolbar" class="code-toolbar hidden">
-        <!-- محجوز للتوافق — لن يُستخدم في الوضع المستقل -->
-      </div>
-
       <div class="code-space-wrap">
         <iframe id="embedFrame" title="معاينة المشروع" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-downloads allow-top-navigation-by-user-activation" src="about:blank"></iframe>
       </div>
       <div id="embedMessage"></div>
-
-      <button id="publishBtn" class="btn primary hidden" type="button" onclick="copyLiveUrl()">نسخ الرابط الحي</button>
-      <p id="publishHint" class="muted small hidden" style="margin-top:8px">هذا هو رابط المشروع الحي داخل منصة Outhub (يعمل بشكل مستقل).</p>
+      <p id="publishHint" class="muted small" style="margin-top:8px">الرابط الحي يفتح المشروع مباشرة داخل Outhub. يعمل على نفس المتصفح/الجهاز الذي أُنشئ فيه المشروع (التخزين محلي).</p>
     </div>
 
     <button class="btn secondary" type="button" onclick="showProjects()" style="margin-top:16px">العودة إلى مشاريعي</button>
@@ -432,11 +482,13 @@ class OuthubEngine {
         return this.generateLiveUrl(this.currentUser, cleanProject);
     }
 
-    // توليد الرابط النهائي المخصص للنشر
+    // توليد رابط حي يعمل فعليًا داخل موقع Outhub
     generateLiveUrl(username, projectName) {
-        // هنا يتم دمج اسم المستخدم مع اسم مشروعه بالصيغة النظيفة تحت نطاقك المتاح
-        // مثال: https://Alislamiah.github.io/outhub.[username].[project]/
-        return `https://Alislamiah.github.io/outhub.${username}.${projectName}/`;
+        // رابط حقيقي يفتح داخل نفس الموقع ويعرض المشروع
+        // مثال: https://Alislamiah.github.io/outhub/?u=username&p=projectname
+        const u = encodeURIComponent(username || "guest");
+        const p = encodeURIComponent(projectName || "project");
+        return `https://Alislamiah.github.io/outhub/?u=${u}&p=${p}`;
     }
 
     // جلب كل مشاريع المستخدم الحالي من التخزين
@@ -465,6 +517,31 @@ class OuthubEngine {
             return null;
         }
     }
+
+    // إضافة أو تحديث ملف داخل المشروع
+    addFile(projectName, fileName, content) {
+        const proj = this.getProject(projectName);
+        if (!proj) return false;
+        const cleanFile = String(fileName || "").trim().replace(/[\/\\]/g, "_");
+        if (!cleanFile) return false;
+        if (!proj.files) proj.files = {};
+        proj.files[cleanFile] = content;
+        proj.updatedAt = new Date().toISOString();
+        const key = `outhub_project_${this.currentUser}_${proj.name}`;
+        localStorage.setItem(key, JSON.stringify(proj));
+        return true;
+    }
+
+    // حذف ملف
+    deleteFile(projectName, fileName) {
+        const proj = this.getProject(projectName);
+        if (!proj || !proj.files) return false;
+        delete proj.files[fileName];
+        proj.updatedAt = new Date().toISOString();
+        const key = `outhub_project_${this.currentUser}_${proj.name}`;
+        localStorage.setItem(key, JSON.stringify(proj));
+        return true;
+    }
 }
 
 const engine = new OuthubEngine();
@@ -479,6 +556,67 @@ window.message = message;
 function clearMessage(id){const el = $(id); if (el) el.innerHTML=""}
 function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));$(id).classList.remove("hidden");window.scrollTo(0,0);}
 
+// قراءة معاملات الرابط الحي ?u=username&p=project
+function getUrlProjectParams(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const u = (params.get("u") || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const p = (params.get("p") || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    if(u && p) return { user: u, project: p };
+  } catch(e){}
+  return null;
+}
+
+// فتح مشروع من الرابط الحي (يعمل حتى لزائر غير مسجل إن وُجدت البيانات محليًا)
+function openProjectFromUrl(){
+  const params = getUrlProjectParams();
+  if(!params) return false;
+
+  // محاولة جلب المشروع من مفتاح المحرك مباشرة
+  const key = `outhub_project_${params.user}_${params.project}`;
+  let engData = null;
+  try { engData = JSON.parse(localStorage.getItem(key) || "null"); } catch(e){}
+
+  if(engData && engData.files){
+    // نعرض المشروع كمعاينة عامة
+    currentProject = {
+      id: "url_" + params.project,
+      name: engData.name || params.project,
+      idea: engData.idea || "",
+      type: engData.type || "موقع إلكتروني",
+      repo: engData.name || params.project,
+      date: engData.updatedAt || new Date().toISOString(),
+      liveUrl: engine.generateLiveUrl(params.user, params.project),
+      files: engData.files,
+      owner: params.user,
+      engine: true
+    };
+    // تعيين المستخدم مؤقتًا ليعمل المحرك
+    engine.setUser(params.user);
+    showProject(currentProject.id);
+    // تنظيف شريط العنوان اختياريًا (نحافظ على الرابط ليبقى قابلاً للمشاركة)
+    return true;
+  }
+
+  // إن لم يُوجد المشروع محليًا نعرض رسالة واضحة
+  showView("homeView");
+  setTimeout(() => {
+    const box = $("recentProjects");
+    if(box){
+      box.innerHTML = `<div class="card">
+        <h3>الرابط الحي</h3>
+        <p class="muted">المستخدم: <strong>${escapeHTML(params.user)}</strong> — المشروع: <strong>${escapeHTML(params.project)}</strong></p>
+        <div class="notice" style="margin-top:12px">
+          هذا المشروع غير متوفر على هذا المتصفح.<br>
+          الروابط الحية في Outhub تعتمد على التخزين المحلي للمتصفح الذي أُنشئ فيه المشروع.
+          افتح الرابط من نفس الجهاز/المتصفح الذي أنشأتَ فيه المشروع لعرضه.
+        </div>
+      </div>`;
+    }
+  }, 300);
+  return true;
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const checkAuth = setInterval(() => {
     if (window.onAuthStateChanged && window.auth) {
@@ -489,11 +627,13 @@ window.addEventListener('DOMContentLoaded', () => {
           const uname = (user.email || "guest").split("@")[0];
           engine.setUser(uname);
           $("accountButton").classList.remove("hidden");
-          showHome();
+          // إن وُجد رابط حي نفتح المشروع، وإلا الرئيسية
+          if(!openProjectFromUrl()) showHome();
         } else {
           engine.setUser("guest");
           $("accountButton").classList.add("hidden");
-          showLogin();
+          // حتى بدون تسجيل دخول نحاول فتح الرابط الحي
+          if(!openProjectFromUrl()) showLogin();
         }
       });
     }
@@ -752,20 +892,63 @@ function renderRecent(){
   $("recentProjects").innerHTML = list.length ? list.map(markup).join("") : '<div class="card empty">لم تحفظ أي مشروع بعد.</div>';
 }
 
+let currentEditingFile = null;
+
+function getEngineProjectName(){
+  if(!currentProject) return "";
+  return currentProject.name || currentProject.repo || "";
+}
+
+function loadProjectFilesFromEngine(){
+  if(!currentProject) return {};
+  // إن كانت الملفات محمّلة مباشرة (من الرابط الحي) نستخدمها
+  if(currentProject.files && Object.keys(currentProject.files).length){
+    return currentProject.files;
+  }
+  const name = getEngineProjectName();
+  if(!name) return {};
+  // جلب من المحرك (بعد تعيين المستخدم الصحيح)
+  const eng = engine.getProject(name);
+  return (eng && eng.files) ? eng.files : {};
+}
+
+function renderProjectFilesList(){
+  const files = loadProjectFilesFromEngine();
+  const names = Object.keys(files);
+  const box = $("projectFilesList");
+  if(!names.length){
+    box.innerHTML = '<div class="empty">لا توجد ملفات بعد. استخدم Create file أو Upload file.</div>';
+    return;
+  }
+  box.innerHTML = names.map(fn => {
+    const isActive = currentEditingFile === fn ? 'border-color:var(--blue);background:#0d1a2e' : '';
+    return `<div class="project-item" style="display:flex;align-items:center;justify-content:space-between;gap:10px;${isActive}" onclick="openFileInEditor('${escapeHTML(fn)}')">
+      <span>📄 ${escapeHTML(fn)}</span>
+      <span class="muted small">${(files[fn]||"").length} حرف</span>
+    </div>`;
+  }).join("");
+}
+
 function showProject(id){
-  const proj = myProjects().find(p => p.id === id);
+  // إن كان المشروع محمّلاً مسبقًا من الرابط الحي نستخدمه مباشرة
+  let proj = null;
+  if(currentProject && (currentProject.id === id || id === currentProject.id)){
+    proj = currentProject;
+  } else {
+    proj = myProjects().find(p => p.id === id);
+  }
   if(!proj){
     showProjects();
     return;
   }
   currentProject = proj;
+  currentEditingFile = null;
   $("projectTitle").textContent = proj.name || "بدون عنوان";
   $("projectDesc").textContent = proj.idea || "لا يوجد وصف";
 
-  // رابط حي من المحرك
   let liveUrl = proj.liveUrl;
   if(!liveUrl && proj.name){
-    liveUrl = engine.generateLiveUrl(usernameNow(), proj.name);
+    liveUrl = engine.generateLiveUrl(proj.owner || usernameNow(), proj.name);
   }
   currentProject.liveUrl = liveUrl;
 
@@ -774,60 +957,153 @@ function showProject(id){
   if(proj.repo) meta.push(`<span>الاسم: ${escapeHTML(proj.repo)}</span>`);
   if(proj.visibility) meta.push(`<span>الخصوصية: ${proj.visibility === "public" ? "علني" : "خاص"}</span>`);
   meta.push(`<span>التاريخ: ${escapeHTML(new Date(proj.date).toLocaleDateString("ar"))}</span>`);
-  if(liveUrl) meta.push(`<span style="color:#31d9e8">🔗 رابط حي</span>`);
+  if(liveUrl) meta.push(`<span style="color:#31d9e8">🔗 ${escapeHTML(liveUrl)}</span>`);
   $("projectMeta").innerHTML = meta.join("");
 
+  // إخفاء اللوحات
+  $("createFilePanel").classList.add("hidden");
+  $("uploadPanel").classList.add("hidden");
+  $("codeEditorSection").classList.add("hidden");
+  clearMessage("createFileMessage");
+  clearMessage("uploadMessage");
+  clearMessage("editorMessage");
   clearMessage("embedMessage");
+
+  $("embedHint").textContent = liveUrl ? ("الرابط الحي: " + liveUrl) : "";
+  renderProjectFilesList();
+  refreshPreview();
+  showView("projectView");
+}
+
+function showCreateFilePanel(){
+  $("createFilePanel").classList.remove("hidden");
+  $("uploadPanel").classList.add("hidden");
+  $("newFileName").value = "";
+  $("newFileCode").value = "";
+  clearMessage("createFileMessage");
+  $("newFileName").focus();
+}
+function hideCreateFilePanel(){ $("createFilePanel").classList.add("hidden"); }
+
+function showUploadPanel(){
+  $("uploadPanel").classList.remove("hidden");
+  $("createFilePanel").classList.add("hidden");
+  clearMessage("uploadMessage");
+}
+function hideUploadPanel(){ $("uploadPanel").classList.add("hidden"); }
+
+function createFileInProject(){
+  const name = getEngineProjectName();
+  if(!name){ message("createFileMessage","لا يوجد مشروع مفتوح.","error"); return; }
+  const fileName = ($("newFileName").value || "").trim();
+  const code = $("newFileCode").value || "";
+  if(!fileName){ message("createFileMessage","أدخل اسم الملف.","error"); return; }
+  if(/[\/\\]/.test(fileName)){ message("createFileMessage","اسم الملف لا يجب أن يحتوي على / أو \\.","error"); return; }
+
+  const ok = engine.addFile(name, fileName, code);
+  if(!ok){ message("createFileMessage","فشل إنشاء الملف.","error"); return; }
+
+  // مزامنة مع السجل القديم إن وُجد
+  currentProject.files = loadProjectFilesFromEngine();
+  message("createFileMessage","✅ تم إنشاء الملف: " + fileName, "success");
+  hideCreateFilePanel();
+  renderProjectFilesList();
+  openFileInEditor(fileName);
+  refreshPreview();
+}
+
+function openFileInEditor(fileName){
+  const files = loadProjectFilesFromEngine();
+  if(!(fileName in files)) return;
+  currentEditingFile = fileName;
+  $("codeEditorSection").classList.remove("hidden");
+  $("currentFileTitle").textContent = "الملف: " + fileName;
+  $("codeEditor").value = files[fileName] || "";
+  clearMessage("editorMessage");
+  renderProjectFilesList();
+}
+
+function saveCurrentFile(){
+  if(!currentEditingFile) return;
+  const name = getEngineProjectName();
+  const content = $("codeEditor").value || "";
+  engine.addFile(name, currentEditingFile, content);
+  currentProject.files = loadProjectFilesFromEngine();
+  message("editorMessage","✅ تم حفظ " + currentEditingFile, "success");
+  renderProjectFilesList();
+  refreshPreview();
+}
+
+function deleteCurrentFile(){
+  if(!currentEditingFile) return;
+  if(!confirm("حذف الملف " + currentEditingFile + "؟")) return;
+  const name = getEngineProjectName();
+  engine.deleteFile(name, currentEditingFile);
+  currentProject.files = loadProjectFilesFromEngine();
+  currentEditingFile = null;
+  $("codeEditorSection").classList.add("hidden");
+  renderProjectFilesList();
+  refreshPreview();
+  message("embedMessage","تم حذف الملف.","info");
+}
+
+function refreshPreview(){
   const frame = $("embedFrame");
-  frame.removeAttribute("srcdoc");
-  frame.src = "about:blank";
+  const files = loadProjectFilesFromEngine();
+  let html = files["index.html"] || files["index.htm"] || null;
 
-  const isWebsite = proj.type === "موقع إلكتروني";
-  const isApp = proj.type === "تطبيق";
-
-  // إخفاء شريط GitHub القديم دائماً (الوضع المستقل)
-  $("githubToolbar").classList.add("hidden");
-
-  if(isWebsite || isApp){
-    $("embedTitle").textContent = "معاينة الموقع الحي";
-    $("embedHint").textContent = liveUrl ? ("الرابط الحي: " + liveUrl) : "معاينة المحتوى المخزن داخل المنصة.";
-    $("publishBtn").classList.remove("hidden");
-    $("publishHint").classList.remove("hidden");
-    $("publishBtn").textContent = "نسخ الرابط الحي";
-
-    // عرض الملفات المخزنة من المحرك (معاينة مستقلة)
-    let htmlContent = null;
-    if(proj.files && proj.files["index.html"]){
-      htmlContent = proj.files["index.html"];
-    } else {
-      // محاولة جلب من المحرك مباشرة
-      const engProj = engine.getProject(proj.name || proj.repo || "");
-      if(engProj && engProj.files && engProj.files["index.html"]){
-        htmlContent = engProj.files["index.html"];
-      }
-    }
-
-    if(htmlContent){
-      // معاينة فورية داخل الصفحة بدون أي توجيه خارجي
-      frame.srcdoc = htmlContent;
-      message("embedMessage", "تم عرض معاينة المشروع من داخل Outhub (مستقل تماماً).\nالرابط الحي: " + (liveUrl || ""), "success");
-    } else {
-      // محتوى افتراضي
-      const fallback = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>${escapeHTML(proj.name||"")}</title>
-<style>body{font-family:Arial;background:#0d1117;color:#e6edf3;text-align:center;padding:40px}h1{color:#58a6ff}</style></head>
-<body><h1>${escapeHTML(proj.name||"مشروع")}</h1><p>${escapeHTML(proj.idea||"")}</p>
-<p style="color:#8b949e;margin-top:24px">تم إنشاؤه عبر Outhub — يعمل بشكل مستقل</p></body></html>`;
-      frame.srcdoc = fallback;
-      message("embedMessage", "معاينة افتراضية. الرابط الحي: " + (liveUrl || ""), "info");
-    }
-  } else {
-    $("embedTitle").textContent = "مساحة المشروع";
-    $("embedHint").textContent = "";
-    $("publishBtn").classList.add("hidden");
-    $("publishHint").classList.add("hidden");
+  // إذا لم يوجد index، نبني صفحة بسيطة تعرض الملفات
+  if(!html){
+    const list = Object.keys(files).map(f => `<li>${escapeHTML(f)}</li>`).join("") || "<li>لا ملفات</li>";
+    html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>${escapeHTML(currentProject?.name||"")}</title>
+<style>body{font-family:Arial,sans-serif;background:#0d1117;color:#e6edf3;padding:30px}h1{color:#58a6ff}ul{line-height:2}</style></head>
+<body><h1>${escapeHTML(currentProject?.name||"مشروع")}</h1>
+<p>${escapeHTML(currentProject?.idea||"")}</p>
+<p style="color:#8b949e">ملفات المشروع:</p><ul>${list}</ul>
+<p style="margin-top:24px;color:#6e7681">Outhub — معاينة مستقلة</p></body></html>`;
   }
 
-  showView("projectView");
+  frame.removeAttribute("src");
+  frame.srcdoc = html;
+  message("embedMessage", "تم تحديث المعاينة من الملفات المخزنة داخل Outhub.", "success");
+}
+
+function triggerDeviceUpload(){
+  $("deviceFileInput").click();
+}
+
+function handleDeviceFiles(ev){
+  const files = ev.target.files;
+  if(!files || !files.length) return;
+  const name = getEngineProjectName();
+  if(!name){ message("uploadMessage","افتح مشروعاً أولاً.","error"); return; }
+
+  let done = 0;
+  const total = files.length;
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(){
+      const content = typeof reader.result === "string" ? reader.result : "";
+      // للملفات النصية نحفظ المحتوى، للصور نحاول base64
+      engine.addFile(name, file.name, content);
+      done++;
+      if(done === total){
+        currentProject.files = loadProjectFilesFromEngine();
+        message("uploadMessage", "✅ تم رفع " + total + " ملف/ملفات بنجاح.", "success");
+        renderProjectFilesList();
+        refreshPreview();
+        hideUploadPanel();
+      }
+    };
+    // نقرأ كنص إن أمكن، وإلا كـ dataURL
+    if(file.type.startsWith("text/") || /\.(html?|css|js|json|md|txt|svg|xml)$/i.test(file.name)){
+      reader.readAsText(file);
+    } else {
+      reader.readAsDataURL(file);
+    }
+  });
+  // إعادة تعيين المدخل
+  ev.target.value = "";
 }
 
 function copyLiveUrl(){
@@ -838,7 +1114,7 @@ function copyLiveUrl(){
   const url = currentProject.liveUrl;
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(url).then(()=>{
-      message("embedMessage","تم نسخ الرابط الحي إلى الحافظة:\n" + url, "success");
+      message("embedMessage","تم نسخ الرابط الحي:\n" + url, "success");
     }).catch(()=>{
       message("embedMessage","الرابط الحي:\n" + url, "info");
     });
@@ -846,10 +1122,6 @@ function copyLiveUrl(){
     message("embedMessage","الرابط الحي:\n" + url, "info");
   }
 }
-
-// الدالتان القديمتان لم تعدا تستخدمان التوجيه إلى GitHub (تم استبدالهما بالوضع المستقل)
-function loadGitHubView(){ /* معطّل — الوضع المستقل */ }
-function publishToGitHub(){ copyLiveUrl(); }
 
 const websiteForm = $("websiteForm");
 if (websiteForm) {
@@ -860,13 +1132,9 @@ if (websiteForm) {
     const repo = $("repoName").value.trim();
     const visibility = $("visibility").value;
     if(!/^[A-Za-z0-9._-]+$/.test(repo)){message("websiteMessage","اسم المشروع غير صالح (حروف وأرقام و - _ . فقط).","error");return;}
-    // إنشاء مستقل بالكامل داخل Outhub — بدون أي توجيه إلى GitHub
     const liveUrl = saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
-    message("websiteMessage", "✅ تم إنشاء المشروع بنجاح داخل Outhub.\nالرابط الحي:\n" + (liveUrl || "") + "\nيمكنك الآن فتحه من «مشاريعي».", "success");
-    // الانتقال مباشرة لعرض المشروع
-    setTimeout(() => {
-      showProjects();
-    }, 1200);
+    message("websiteMessage", "✅ تم إنشاء المشروع بنجاح.\nالرابط الحي (يعمل على هذا المتصفح):\n" + (liveUrl || "") + "\nافتحه من «مشاريعي» أو انسخ الرابط.", "success");
+    setTimeout(() => showProjects(), 1000);
   });
 }
 
@@ -876,12 +1144,9 @@ if (appForm) {
     e.preventDefault();
     const name = $("appName").value.trim();
     const idea = $("appIdea").value.trim();
-    // إنشاء مستقل — بدون فتح أدوات خارجية
     const liveUrl = saveProject({name, idea, type: "تطبيق"});
     message("appMessage", "✅ تم حفظ التطبيق داخل Outhub.\nالرابط الحي:\n" + (liveUrl || ""), "success");
-    setTimeout(() => {
-      showProjects();
-    }, 1200);
+    setTimeout(() => showProjects(), 1000);
   });
 }
 </script>
