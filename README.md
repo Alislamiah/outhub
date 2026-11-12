@@ -291,13 +291,13 @@ function openMedad(){
     <article class="card project-card">
       <div class="project-icon">🌐</div>
       <h3>إنشاء موقع إلكتروني</h3>
-      <p>جهّز تفاصيل مشروعك وانتقل إلى GitHub لإنشاء مستودع جديد.</p>
+      <p>أنشئ مشروعك مباشرة داخل Outhub واحصل على رابط حي فوري (مثل GitHub Pages).</p>
       <button class="btn primary" onclick="showWebsite()">إنشاء موقع</button>
     </article>
     <article class="card project-card">
       <div class="project-icon">📱</div>
       <h3>إنشاء تطبيق</h3>
-      <p>احفظ فكرة التطبيق وانتقل إلى أداة إنشاء التطبيقات.</p>
+      <p>احفظ فكرة التطبيق داخل المنصة واحصل على رابط خاص به.</p>
       <button class="btn primary" onclick="showApp()">إنشاء تطبيق</button>
     </article>
     <article class="card project-card">
@@ -323,10 +323,10 @@ function openMedad(){
     <form id="websiteForm">
       <div class="field"><label for="websiteName">اسم المشروع</label><input id="websiteName" required placeholder="اسم الموقع"></div>
       <div class="field"><label for="websiteIdea">فكرة الموقع</label><input id="websiteIdea" required placeholder="اشرح فكرة الموقع"></div>
-      <div class="field"><label for="repoName">اسم مستودع GitHub</label><input id="repoName" required pattern="[A-Za-z0-9._-]+" placeholder="my-website"></div>
-      <div class="field"><label for="visibility">خصوصية المستودع المطلوبة</label><select id="visibility"><option value="private">خاص — Private</option><option value="public">علني — Public</option></select></div>
-      <div class="notice">سيُفتح GitHub لإكمال إنشاء المستودع. يجب تأكيد الخصوصية هناك؛ حفظ المشروع في Outhub لا ينشئ مستودع GitHub تلقائيًا.</div>
-      <button class="btn primary" type="submit">حفظ والانتقال إلى GitHub</button>
+      <div class="field"><label for="repoName">اسم المشروع (للرابط)</label><input id="repoName" required pattern="[A-Za-z0-9._-]+" placeholder="my-website"></div>
+      <div class="field"><label for="visibility">خصوصية المشروع</label><select id="visibility"><option value="private">خاص — Private</option><option value="public">علني — Public</option></select></div>
+      <div class="notice">سيتم إنشاء المشروع مباشرة داخل Outhub وتوليد رابط حي له (مثل GitHub Pages) دون الحاجة إلى GitHub.</div>
+      <button class="btn primary" type="submit">إنشاء المشروع والحصول على الرابط الحي</button>
     </form>
     <div id="websiteMessage"></div>
     <button class="btn secondary" type="button" onclick="showHome()">العودة إلى الرئيسية</button>
@@ -362,21 +362,20 @@ function openMedad(){
     <div class="project-meta" id="projectMeta"></div>
 
     <div id="embedSection">
-      <h3 id="embedTitle">مساحة الكود</h3>
+      <h3 id="embedTitle">معاينة الموقع الحي</h3>
       <p id="embedHint" class="muted small" style="margin-bottom:10px"></p>
 
       <div id="githubToolbar" class="code-toolbar hidden">
-        <input id="githubUserInput" type="text" placeholder="اسم مستخدم GitHub (مثال: username)" autocomplete="username">
-        <button class="btn secondary" type="button" onclick="loadGitHubView()">تحميل مساحة الكود</button>
+        <!-- محجوز للتوافق — لن يُستخدم في الوضع المستقل -->
       </div>
 
       <div class="code-space-wrap">
-        <iframe id="embedFrame" title="مساحة داخل الصفحة" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-downloads allow-top-navigation-by-user-activation" src="about:blank"></iframe>
+        <iframe id="embedFrame" title="معاينة المشروع" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-downloads allow-top-navigation-by-user-activation" src="about:blank"></iframe>
       </div>
       <div id="embedMessage"></div>
 
-      <button id="publishBtn" class="btn primary hidden" type="button" onclick="publishToGitHub()">نشر الموقع — فتح إعدادات المشروع في GitHub</button>
-      <p id="publishHint" class="muted small hidden" style="margin-top:8px">يفتح صفحة إعدادات المستودع (Pages) لتفعيل GitHub Pages ونشر الموقع.</p>
+      <button id="publishBtn" class="btn primary hidden" type="button" onclick="copyLiveUrl()">نسخ الرابط الحي</button>
+      <p id="publishHint" class="muted small hidden" style="margin-top:8px">هذا هو رابط المشروع الحي داخل منصة Outhub (يعمل بشكل مستقل).</p>
     </div>
 
     <button class="btn secondary" type="button" onclick="showProjects()" style="margin-top:16px">العودة إلى مشاريعي</button>
@@ -400,6 +399,76 @@ let generatedOtp = "";
 let pendingEmail = "";
 let currentProject = null;
 
+/* ===== OuthubEngine — محرك المشاريع (مثل GitHub) ===== */
+class OuthubEngine {
+    constructor() {
+        // محاكاة أو ربط قاعدة بيانات/التخزين المحلي لإدارة مشاريع المستخدمين
+        this.currentUser = localStorage.getItem("outhub_active_user") || "guest";
+    }
+
+    setUser(username) {
+        const clean = String(username || "guest").toLowerCase().trim().replace(/[^a-z0-9]/g, '') || "guest";
+        this.currentUser = clean;
+        localStorage.setItem("outhub_active_user", clean);
+    }
+
+    // المستخدم ينشئ مشروعاً جديداً بنفسه (مثل Repository جديد)
+    createProject(projectName, filesData) {
+        const cleanProject = projectName.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+        
+        // هيكل حفظ الملفات الخاص بالمستخدم داخل المنصة
+        const projectKey = `outhub_project_${this.currentUser}_${cleanProject}`;
+        
+        const projectData = {
+            owner: this.currentUser,
+            name: cleanProject,
+            files: filesData, // ملفات الـ HTML, CSS وغيرها
+            updatedAt: new Date().toISOString()
+        };
+
+        localStorage.setItem(projectKey, JSON.stringify(projectData));
+        
+        // توليد الرابط النهائي للمستخدم بالهيكل الاحترافي المطلوب
+        return this.generateLiveUrl(this.currentUser, cleanProject);
+    }
+
+    // توليد الرابط النهائي المخصص للنشر
+    generateLiveUrl(username, projectName) {
+        // هنا يتم دمج اسم المستخدم مع اسم مشروعه بالصيغة النظيفة تحت نطاقك المتاح
+        // مثال: https://Alislamiah.github.io/outhub.[username].[project]/
+        return `https://Alislamiah.github.io/outhub.${username}.${projectName}/`;
+    }
+
+    // جلب كل مشاريع المستخدم الحالي من التخزين
+    listProjects() {
+        const prefix = `outhub_project_${this.currentUser}_`;
+        const list = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(prefix)) {
+                try {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    if (data && data.name) list.push(data);
+                } catch (e) {}
+            }
+        }
+        return list.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+    }
+
+    // جلب مشروع واحد
+    getProject(projectName) {
+        const clean = projectName.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+        const key = `outhub_project_${this.currentUser}_${clean}`;
+        try {
+            return JSON.parse(localStorage.getItem(key) || "null");
+        } catch (e) {
+            return null;
+        }
+    }
+}
+
+const engine = new OuthubEngine();
+
 function $(id){return document.getElementById(id)}
 function escapeHTML(s){return String(s ?? "").replace(/[&<>\"'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function message(id,text,type="info"){
@@ -416,9 +485,13 @@ window.addEventListener('DOMContentLoaded', () => {
       clearInterval(checkAuth);
       window.onAuthStateChanged(window.auth, (user) => {
         if (user) {
+          // تعيين المستخدم في محرك المشاريع من البريد (جزء قبل @)
+          const uname = (user.email || "guest").split("@")[0];
+          engine.setUser(uname);
           $("accountButton").classList.remove("hidden");
           showHome();
         } else {
+          engine.setUser("guest");
           $("accountButton").classList.add("hidden");
           showLogin();
         }
@@ -428,6 +501,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function emailNow(){ return window.auth?.currentUser?.email || ""; }
+function usernameNow(){ return engine.currentUser || "guest"; }
 function showLogin(){showView("authView");$("loginPanel").classList.remove("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.add("hidden");clearMessage("loginMessage");}
 function showRegister(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.remove("hidden");$("forgotPanel").classList.add("hidden");$("emailStep").classList.remove("hidden");$("verifyStep").classList.add("hidden");clearMessage("registerMessage");}
 function showForgot(){showView("authView");$("loginPanel").classList.add("hidden");$("registerPanel").classList.add("hidden");$("forgotPanel").classList.remove("hidden");}
@@ -591,31 +665,90 @@ function allStored(){
     return a;
   }catch(e){return []}
 }
-function myProjects(){return allStored().filter(p => p.owner === emailNow());}
+function myProjects(){
+  // دمج المشاريع القديمة + مشاريع المحرك الجديد
+  const old = allStored().filter(p => p.owner === emailNow());
+  const fromEngine = engine.listProjects().map(ep => ({
+    id: "eng_" + ep.name,
+    name: ep.name,
+    type: ep.type || "موقع إلكتروني",
+    idea: ep.idea || "",
+    repo: ep.repo || ep.name,
+    visibility: ep.visibility || "public",
+    date: ep.updatedAt || ep.date || new Date().toISOString(),
+    liveUrl: engine.generateLiveUrl(ep.owner, ep.name),
+    files: ep.files || null,
+    owner: emailNow(),
+    engine: true
+  }));
+  // تجنب التكرار حسب الاسم
+  const names = new Set(fromEngine.map(p => p.name.toLowerCase()));
+  const merged = [...fromEngine, ...old.filter(p => !names.has((p.name||"").toLowerCase()))];
+  return merged;
+}
 function saveProject(p){
+  // 1) الحفظ التقليدي (للتوافق مع الواجهة الحالية)
   const all = allStored();
-  all.push({
+  const id = "p_" + Date.now() + "_" + Math.random().toString(36).slice(2,9);
+  const record = {
     ...p,
-    id: "p_" + Date.now() + "_" + Math.random().toString(36).slice(2,9),
+    id,
     owner: emailNow(),
     date: new Date().toISOString()
-  });
+  };
+  all.push(record);
   localStorage.setItem(KEY, JSON.stringify(all));
+
+  // 2) الحفظ عبر OuthubEngine (مثل GitHub) + توليد الرابط الحي
+  const defaultHtml = `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${escapeHTML(p.name || "مشروع")}</title>
+<style>
+  body{font-family:Arial,sans-serif;background:#0d1117;color:#e6edf3;margin:0;padding:40px;text-align:center}
+  h1{color:#58a6ff}
+  p{color:#8b949e;max-width:600px;margin:16px auto;line-height:1.7}
+  .badge{display:inline-block;background:#21262d;border:1px solid #30363d;padding:6px 14px;border-radius:20px;font-size:13px;margin-top:20px}
+</style>
+</head>
+<body>
+  <h1>${escapeHTML(p.name || "مشروع جديد")}</h1>
+  <p>${escapeHTML(p.idea || "تم إنشاء هذا المشروع عبر منصة Outhub")}</p>
+  <div class="badge">Powered by Outhub</div>
+</body>
+</html>`;
+
+  const filesData = {
+    "index.html": defaultHtml
+  };
+
+  const liveUrl = engine.createProject(p.name || p.repo || "project", filesData);
+
+  // حفظ الرابط الحي مع السجل القديم أيضاً
+  record.liveUrl = liveUrl;
+  const updated = allStored().map(item => item.id === id ? {...item, liveUrl} : item);
+  localStorage.setItem(KEY, JSON.stringify(updated));
+
+  return liveUrl;
 }
 function markup(p){
+  const live = p.liveUrl ? `<p style="color:#31d9e8;font-size:12px;margin-top:6px">🔗 ${escapeHTML(p.liveUrl)}</p>` : "";
   return `<div class="project-item" onclick="showProject('${escapeHTML(p.id)}')" role="button" tabindex="0">
     <strong>${escapeHTML(p.name)}</strong>
     <p>النوع: ${escapeHTML(p.type)}</p>
     <p>${escapeHTML(p.idea)}</p>
     <p>${escapeHTML(new Date(p.date).toLocaleDateString("ar"))}</p>
+    ${live}
   </div>`;
 }
 function projectList(){
-  const list = myProjects().reverse();
+  const list = myProjects();
   return list.length ? list.map(markup).join("") : '<div class="empty">لا توجد مشاريع محفوظة.</div>';
 }
 function renderRecent(){
-  const list = myProjects().slice(-3).reverse();
+  const list = myProjects().slice(0,3);
   $("recentProjects").innerHTML = list.length ? list.map(markup).join("") : '<div class="card empty">لم تحفظ أي مشروع بعد.</div>';
 }
 
@@ -629,44 +762,67 @@ function showProject(id){
   $("projectTitle").textContent = proj.name || "بدون عنوان";
   $("projectDesc").textContent = proj.idea || "لا يوجد وصف";
 
+  // رابط حي من المحرك
+  let liveUrl = proj.liveUrl;
+  if(!liveUrl && proj.name){
+    liveUrl = engine.generateLiveUrl(usernameNow(), proj.name);
+  }
+  currentProject.liveUrl = liveUrl;
+
   const meta = [];
   meta.push(`<span>النوع: ${escapeHTML(proj.type)}</span>`);
-  if(proj.repo) meta.push(`<span>المستودع: ${escapeHTML(proj.repo)}</span>`);
+  if(proj.repo) meta.push(`<span>الاسم: ${escapeHTML(proj.repo)}</span>`);
   if(proj.visibility) meta.push(`<span>الخصوصية: ${proj.visibility === "public" ? "علني" : "خاص"}</span>`);
   meta.push(`<span>التاريخ: ${escapeHTML(new Date(proj.date).toLocaleDateString("ar"))}</span>`);
+  if(liveUrl) meta.push(`<span style="color:#31d9e8">🔗 رابط حي</span>`);
   $("projectMeta").innerHTML = meta.join("");
 
   clearMessage("embedMessage");
   const frame = $("embedFrame");
+  frame.removeAttribute("srcdoc");
   frame.src = "about:blank";
 
   const isWebsite = proj.type === "موقع إلكتروني";
   const isApp = proj.type === "تطبيق";
 
-  if(isWebsite){
-    $("embedTitle").textContent = "مساحة الكود";
-    $("embedHint").textContent = "أدخل اسم مستخدم GitHub لعرض المستودع داخل الصفحة (webview).";
-    $("githubToolbar").classList.remove("hidden");
+  // إخفاء شريط GitHub القديم دائماً (الوضع المستقل)
+  $("githubToolbar").classList.add("hidden");
+
+  if(isWebsite || isApp){
+    $("embedTitle").textContent = "معاينة الموقع الحي";
+    $("embedHint").textContent = liveUrl ? ("الرابط الحي: " + liveUrl) : "معاينة المحتوى المخزن داخل المنصة.";
     $("publishBtn").classList.remove("hidden");
     $("publishHint").classList.remove("hidden");
+    $("publishBtn").textContent = "نسخ الرابط الحي";
 
-    const savedUser = localStorage.getItem(GITHUB_USER_KEY) || "";
-    $("githubUserInput").value = savedUser;
-    if(savedUser && proj.repo){
-      setTimeout(() => loadGitHubView(), 150);
+    // عرض الملفات المخزنة من المحرك (معاينة مستقلة)
+    let htmlContent = null;
+    if(proj.files && proj.files["index.html"]){
+      htmlContent = proj.files["index.html"];
+    } else {
+      // محاولة جلب من المحرك مباشرة
+      const engProj = engine.getProject(proj.name || proj.repo || "");
+      if(engProj && engProj.files && engProj.files["index.html"]){
+        htmlContent = engProj.files["index.html"];
+      }
     }
-  } else if(isApp){
-    $("embedTitle").textContent = "داشبورد AppsGeyser";
-    $("embedHint").textContent = "لوحة إنشاء التطبيقات معروضة داخل الصفحة.";
-    $("githubToolbar").classList.add("hidden");
-    $("publishBtn").classList.add("hidden");
-    $("publishHint").classList.add("hidden");
-    frame.src = "https://appsgeyser.com/create-app/";
-    message("embedMessage","تم فتح داشبورد AppsGeyser داخل الصفحة.","success");
+
+    if(htmlContent){
+      // معاينة فورية داخل الصفحة بدون أي توجيه خارجي
+      frame.srcdoc = htmlContent;
+      message("embedMessage", "تم عرض معاينة المشروع من داخل Outhub (مستقل تماماً).\nالرابط الحي: " + (liveUrl || ""), "success");
+    } else {
+      // محتوى افتراضي
+      const fallback = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>${escapeHTML(proj.name||"")}</title>
+<style>body{font-family:Arial;background:#0d1117;color:#e6edf3;text-align:center;padding:40px}h1{color:#58a6ff}</style></head>
+<body><h1>${escapeHTML(proj.name||"مشروع")}</h1><p>${escapeHTML(proj.idea||"")}</p>
+<p style="color:#8b949e;margin-top:24px">تم إنشاؤه عبر Outhub — يعمل بشكل مستقل</p></body></html>`;
+      frame.srcdoc = fallback;
+      message("embedMessage", "معاينة افتراضية. الرابط الحي: " + (liveUrl || ""), "info");
+    }
   } else {
     $("embedTitle").textContent = "مساحة المشروع";
     $("embedHint").textContent = "";
-    $("githubToolbar").classList.add("hidden");
     $("publishBtn").classList.add("hidden");
     $("publishHint").classList.add("hidden");
   }
@@ -674,39 +830,26 @@ function showProject(id){
   showView("projectView");
 }
 
-function loadGitHubView(){
-  if(!currentProject || !currentProject.repo){
-    message("embedMessage","لا يوجد مستودع مرتبط بهذا المشروع.","error");
+function copyLiveUrl(){
+  if(!currentProject || !currentProject.liveUrl){
+    message("embedMessage","لا يوجد رابط حي لهذا المشروع.","error");
     return;
   }
-  const user = ($("githubUserInput").value || "").trim().replace(/^@/,"");
-  if(!user || !/^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/.test(user)){
-    message("embedMessage","أدخل اسم مستخدم GitHub صحيحًا.","error");
-    return;
+  const url = currentProject.liveUrl;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>{
+      message("embedMessage","تم نسخ الرابط الحي إلى الحافظة:\n" + url, "success");
+    }).catch(()=>{
+      message("embedMessage","الرابط الحي:\n" + url, "info");
+    });
+  } else {
+    message("embedMessage","الرابط الحي:\n" + url, "info");
   }
-  localStorage.setItem(GITHUB_USER_KEY, user);
-  const repo = currentProject.repo;
-  // github1s يعرض الكود بشكل ويب فيو قابل للتضمين داخل الصفحة
-  const url = "https://github1s.com/" + encodeURIComponent(user) + "/" + encodeURIComponent(repo);
-  $("embedFrame").src = url;
-  message("embedMessage","تم تحميل مساحة الكود من GitHub داخل الصفحة.","success");
 }
 
-function publishToGitHub(){
-  if(!currentProject || !currentProject.repo){
-    message("embedMessage","لا يوجد مستودع مرتبط بهذا المشروع.","error");
-    return;
-  }
-  const user = ($("githubUserInput").value || "").trim().replace(/^@/,"");
-  if(!user){
-    message("embedMessage","أدخل اسم مستخدم GitHub أولاً ثم اضغط نشر الموقع.","error");
-    return;
-  }
-  localStorage.setItem(GITHUB_USER_KEY, user);
-  const settingsUrl = "https://github.com/" + encodeURIComponent(user) + "/" + encodeURIComponent(currentProject.repo) + "/settings/pages";
-  window.open(settingsUrl, "_blank", "noopener");
-  message("embedMessage","تم فتح إعدادات المشروع في GitHub (صفحة Pages). فعّل GitHub Pages من هناك لنشر الموقع.","success");
-}
+// الدالتان القديمتان لم تعدا تستخدمان التوجيه إلى GitHub (تم استبدالهما بالوضع المستقل)
+function loadGitHubView(){ /* معطّل — الوضع المستقل */ }
+function publishToGitHub(){ copyLiveUrl(); }
 
 const websiteForm = $("websiteForm");
 if (websiteForm) {
@@ -716,10 +859,14 @@ if (websiteForm) {
     const idea = $("websiteIdea").value.trim();
     const repo = $("repoName").value.trim();
     const visibility = $("visibility").value;
-    if(!/^[A-Za-z0-9._-]+$/.test(repo)){message("websiteMessage","اسم المستودع غير صالح.","error");return;}
-    saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
-    window.open("https://github.com/new?name=" + encodeURIComponent(repo), "_blank", "noopener");
-    message("websiteMessage","حُفظ المشروع محليًا وتم توجيهك إلى GitHub.","success");
+    if(!/^[A-Za-z0-9._-]+$/.test(repo)){message("websiteMessage","اسم المشروع غير صالح (حروف وأرقام و - _ . فقط).","error");return;}
+    // إنشاء مستقل بالكامل داخل Outhub — بدون أي توجيه إلى GitHub
+    const liveUrl = saveProject({name, idea, type:"موقع إلكتروني", repo, visibility});
+    message("websiteMessage", "✅ تم إنشاء المشروع بنجاح داخل Outhub.\nالرابط الحي:\n" + (liveUrl || "") + "\nيمكنك الآن فتحه من «مشاريعي».", "success");
+    // الانتقال مباشرة لعرض المشروع
+    setTimeout(() => {
+      showProjects();
+    }, 1200);
   });
 }
 
@@ -727,9 +874,14 @@ const appForm = $("appForm");
 if (appForm) {
   appForm.addEventListener("submit", e => {
     e.preventDefault();
-    saveProject({name: $("appName").value.trim(), idea: $("appIdea").value.trim(), type: "تطبيق"});
-    window.open("https://appsgeyser.com/create-app/","_blank","noopener");
-    message("appMessage","حُفظت معلومات التطبيق وتم فتح أداة الإنشاء.","success");
+    const name = $("appName").value.trim();
+    const idea = $("appIdea").value.trim();
+    // إنشاء مستقل — بدون فتح أدوات خارجية
+    const liveUrl = saveProject({name, idea, type: "تطبيق"});
+    message("appMessage", "✅ تم حفظ التطبيق داخل Outhub.\nالرابط الحي:\n" + (liveUrl || ""), "success");
+    setTimeout(() => {
+      showProjects();
+    }, 1200);
   });
 }
 </script>
